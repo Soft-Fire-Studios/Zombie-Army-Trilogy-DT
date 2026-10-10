@@ -1,0 +1,11 @@
+"VertexLitGeneric"
+{
+ "$model" "1"
+ "$basetexture" "models/zombiearmytrilogy/textures/graphics/characters/dismemberment_stumps/stump_gore_fresh_d"
+ "$bumpmap" "models/zombiearmytrilogy/textures/graphics/characters/dismemberment_stumps/stump_gore_fresh_n"
+ "$phong" "1"
+ "$phongexponent" "12"
+ "$phongboost" "0.35"
+ "$phongfresnelranges" "[0.2 0.4 1]"
+ "$basemapalphaphongmask" "1"
+}

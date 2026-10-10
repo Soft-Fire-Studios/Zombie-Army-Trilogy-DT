@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/vertexlit/graphics/characters/dismemberment_stumps/stump_gore_rotten_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/vertexlit/graphics/characters/dismemberment_stumps/stump_gore_rotten_n"
+    "$phong" "1"
+    "$phongexponent" "22.6932623"
+    "$phongboost" "2.83665778"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/textures/vertexlit/lightwarps/graphics/characters/dismemberment_stumps/stump_gore_rotten_d"
+    "$model" "1"
+}

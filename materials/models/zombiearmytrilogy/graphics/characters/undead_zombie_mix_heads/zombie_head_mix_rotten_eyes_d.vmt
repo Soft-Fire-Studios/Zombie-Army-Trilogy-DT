@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/vertexlit/graphics/characters/undead_zombie_mix_heads/zombie_head_mix_rotten_eyes_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/vertexlit/graphics/characters/undead_zombie_mix_heads/zombie_head_mix_rotten_eyes_n"
+    "$phong" "1"
+    "$phongexponent" "6.36793115"
+    "$phongboost" "0.795991394"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/textures/vertexlit/lightwarps/graphics/characters/undead_zombie_mix_heads/zombie_head_mix_rotten_eyes_d"
+    "$model" "1"
+}

@@ -1,0 +1,226 @@
+ZOMBIE ARMY TRILOGY - PROJECT MIGRATION REPORT
+
+Source game: Z:\Program Files (x86)\Steam\steamapps\common\Zombie Army Trilogy
+Project: X:\Source_Ports\ZombieArmyTrilogy
+Active addon: Z:\Program Files (x86)\Steam\steamapps\common\GarrysMod\garrysmod\addons\Zombie-Army-Trilogy-DT
+
+Asset coverage
+  155 game archives; 1752 named profiles catalogued.
+  89 compiled models: 35 static props, 26 equipment,
+  20 joint-local gib models, 4 partial ragdolls, 1 common soldier, 1 Skeleton, 1 Suicide Grunt and 1 Armored Heavy.
+  25 empty object/controller profiles recorded, rather than compiled as invisible props.
+  109 readable VMT names; 184 VTFs.
+  393 named audio files; 22 synchronized music arrangements
+  across 15 theme choices from Episodes 1, 2 and 3.
+  Original filenames and texture folders are preserved. Native resource IDs remain
+  only in the audit lookup tables. Converted channels have short descriptive suffixes.
+
+Zombie-only runtime package
+  Materials: 2.48 GiB -> 597.2 MiB.
+  Removed 2,823 unreferenced material/texture files and 1,357 unrelated models.
+  Compiled texture tables, all skins/bodygroups, DX80/DX90 LOD replacements, Lua and PCF materials determine retention.
+  Zombie gear, breakoff armor, gibs, partial ragdolls, blood and pentagram effects remain.
+  Every retained model/material/texture/audio file is byte-identical; no quality reduction or recompression.
+  All currently referenced named audio and layered director music are retained.
+  Source models, textures, audio resources, conversion histories and original game archives remain intact.
+  audit/zombie-asset-scope.json lists exact dependencies, removed names, sizes and verified rollback copies.
+  prune_zombie_assets.py --apply repeats the cleanup after asset changes; --validate checks its dependency closure.
+  The build pipeline performs this step last so broad exports do not regrow the runtime pack.
+
+Updated stock Source materials (viewer 1.14.0)
+  9 native materials and 2 compiled-slot aliases refreshed.
+  96 other model materials retain their existing bytes and shading.
+  The exact reviewed native program and same-archive response row must both resolve.
+  Native BC5 normals reconstruct XYZ with the compiled Source green-channel correction.
+  Normal alpha uses native specular alpha; albedo alpha is not treated as opacity.
+  Native sRGB flags drive color conversion; color mips use linear light and normal mips renormalize.
+  Native response rows fit Phong exponent/boost, tint and a linear diffuse lightwarp.
+  Source selects full-resolution DDS resources by the existing named/serialized bindings.
+  This texture-quality adaptation does not establish native runtime streaming order.
+  VMT names stay compatible with compiled models. New VTF basenames retain native names.
+  New maps are separate from legacy textures, which unsupported materials still share.
+  Source Phong, ambient/prelight, colored lights and low-G backlighting remain approximations.
+  Unsupported routes preserve normals, shininess and glow; no diffuse fallback is installed.
+  The material-only pass leaves the two effect materials, models and runtime Lua unchanged.
+  audit/material-reexport.json retains native records, input/output hashes, names and limitations.
+  validate_materials.py checks real DDS/VTF channels, response values and preserved file hashes.
+  Reapply with python reexport_materials.py; validate with --validate.
+  build_pipeline.py runs this pass after legacy material writers. In-game appearance needs testing.
+
+Native animation and collision data
+  Common soldier: 123 authored actions and 788 events.
+  Recovery: 13 authored clips and 89 events.
+  Skeleton: 49 native actions and 119 events.
+  Suicide Grunt: 14 native actions and 71 events.
+  Armored Heavy: 18 native actions and 143 events.
+  Vocal, foley, footstep and melee events retain their original event indices and timing.
+  Native animation sound tables take precedence over character-head sound tables.
+  Trilogy v9 dialogue and v4 dialogue-line tables resolve named pain vocalizations.
+  Source foot-left/right events use the existing surface-aware NextBot handler.
+  Motion sequences extract displacement every 5 frames, including the final frame.
+  Thirty existing locomotion loops, two armored Skeleton walks and two Heavy walks extract LX only.
+  The shared Skeleton separates native actor travel onto an unweighted motion_root parent.
+  Its original weighted rig retains the authored body-root sway, bob and all local channels.
+  Walkframes use actor displacement only; the earlier lateral-zeroing step has been removed.
+  Collision SMDs retain their original hierarchy and physical bone names/constraints.
+  Navigation holds native mean forward speed; gait phases pace foot playback only.
+  The viewer decodes absolute v13 positions and bind-relative rotation axes correctly.
+  The repaired SMDs fix Suicide Grunt growth and folded Skeleton walks.
+  Source scale: 39.3701 units/metre. Basis: native (x,y,z) -> Source (z,-x,-y),
+  plus the established QC $origin 0 0 0 -90 and $upaxis Z correction.
+  Common soldier: 78 rig bones, 4 native visual LODs plus shadow LOD,
+  finger/facial/toe collapse at distance, and 19 native ragdoll shapes.
+  6840 compiled hitbox sets cover anatomy, hats and held weapons.
+  Hit registration uses Source model hitgroups. The shared capsule project is preserved
+  separately and is not required by these zombies.
+
+Trilogy equipment
+  Heads: undead_german_elite_head, undead_germansoldier_head, undead_germanalternate_head, undead_german_soldier_head_new, gnarly_zombie_head, headmix_nolipsnonose, zombie_head, zombie_mix_half_head, zombie_mix_rotten_eyes
+  Headwear: lighthelm_chinless, lighthelm, germansoldier_helmet, germanalternate_hat, helmet_gasmask, helmet_germansoldier_swastika, helmet_stuck_bayonet, helmet_bucket
+  Held items: stump, bent_metal, bent_metal_b, bone, bone_b, bone_c, broken_bottle, hammer, meathook, metal_bracket, plank, short_plank, shovel, torch, wrench, mp40, thompson, luger
+  Optional armor bodygroups: lightarmour_rthigh, lightarmour_lcalf, lightarmour_chest, lightarmour_stomach, lightarmour_back, lightarmour_lshol, lightarmour_rshol, lightarmour_lthigh, lightarmour_rcalf, f1_grenade
+  Only zombie equipment, breakoff armor and gore props are packaged; the full exported source catalogue is archived.
+  The assembled cuttable common body replaces the older three uniform models.
+  The old camo entity classes remain compatibility aliases for saved spawns.
+
+Shared Skeleton and prop models
+  Skeleton, Armored Skeleton and Rotted Skeleton use the same gameplay model.
+  Bodygroups: body (regular/rotted), heart, fourteen independent armor plates, unused sword.
+  Armor skin 0 = clean, skin 1 = rusty. Six original loadouts retain their socket placements.
+  The rusty chest has different LOD0 geometry/UVs and remains its own bodygroup state.
+  The native rusty loadouts retain the clean right gauntlet through its own material slot.
+  Skeletons no longer equip or drop a sword; the named armour_sword prop remains available.
+  Armor absorbs bullets, loses separate durability per plate, and breaks off before exposing the body.
+  The breaking shot is absorbed in full; a subsequent exposed heart hit kills the skeleton.
+  Bodygroup visibility and remaining plate durability survive director recycling.
+  Bone-local worn-plate hit refinement runs only on bullet hits, with no extra server entities.
+  Two native armored walking clips retain all nine events each, including silent native slot 104.
+  All five sound markers per clip remain; four are populated vocal/bone foley bindings.
+  All skeleton appearances retain the heart weakpoint and twelve-piece breakup.
+  Rotten bones are additional states in those twelve existing gib models.
+  Breaking plates and remaining armor on death scatter through the bounded client debris system.
+  Director weights in special_settings.lua are 2 normal : 1 armored : 1 rotted;
+  all share the skeleton cap, including dormant reservations.
+  13 proven prop skin families are packaged; 56 source-catalogue duplicates were consolidated.
+  Every merged prop matches in geometry, normals, UVs, weights, all LODs, surface and collision.
+  Native prop names remain in spawn-menu tooltips and audit/skin-variants.csv.
+  Original sources and retired compiled files are backed up; removed model paths are listed
+  in audit/skin-consolidation.json. Saved props using old paths need the listed model/skin pair.
+  The two native camo uniforms have matching UV triangles at every LOD, despite reordered vertices.
+  Their geometry differs. The current cuttable common body also has a different UV layout.
+  It remains one common model; no camo textures are incorrectly swapped onto that layout.
+  See audit/uniform-skin-audit.json for exact comparisons.
+
+New behavior connected to the existing systems
+  Authored left/right arm and leg severs, abdomen damage and waist separation.
+  Leg/waist loss switches to native crawling idle, movement, turning and attacks.
+  Remaining arms choose appropriate attacks; losing the gun arm drops its weapon.
+  Removed limbs stop receiving hits; corpse hitbox selection is replicated to clients.
+  Ragdolls retain bodygroup cuts; removed limb physics stop colliding.
+  Crawler torso/abdomen choices are corrected in Lua without changing those model bodygroups.
+  Regular waist cuts drop a separate lower ragdoll; crawler death/recovery uses an upper rig.
+  Suicider blasts produce two torso-only ragdolls, four common zombie limb gibs, head chunks and bandana.
+  The suicider upper torso has 3 native physics bodies; the lower torso has 1, with no hidden limbs/head.
+  UpperLaunchSpeed adds 400 units/second upward to every upper-torso joint; edit special_settings.lua.
+  Regular upper/lower halves retain 12/7 native bodies. Cross-waist constraints are absent.
+  Both halves share the global corpse cap/lifetime and retain skin/scale/gear choices.
+  Crowd avoidance faces its steering point while native obstacle routes keep advancing.
+  Suiciders turn at 360 degrees/second and
+  refresh direct routes at 0.12 seconds through the existing shared work queue.
+  MP40, Thompson and Luger use the loose raise/shoot/lower clips:
+    Undead_Grunt_Shoot_MG_Shot_01
+    Undead_Grunt_Shoot_MG_Spray_01
+    Undead_Grunt_Shoot_MG_Spray_02
+  Gun attacks are occasional complete actions, with single shots or short bursts.
+  Gun audio loops once per firing window and stops cleanly during lowering or interruption.
+  Close attack handoffs stop stale pursuit/avoidance, retain attack reservations,
+  turn with authored clips before swinging, and resume pursuit when the target escapes.
+  Existing director, navigation, hearing, density UI, resurrection, disarming,
+  helmets, gore, performance diagnostics and multiplayer presentation are retained.
+
+Armored Heavy
+  Native undead_heavyarmour_burnt body/head plus twelve separate armor plates and three helmet variants.
+  Native sockets and inverse binds position every plate; numerical Source hitgroups register bullets.
+  Worn-plate checks run only on hits. Armor before flesh absorbs shots; front plates do not shield the rear.
+  Exposed flesh takes damage. Breaking bullets are absorbed, and broken/damaged armor persists on recycle.
+  Native visual geometry exposes substantially more rear torso than front torso in reference-pose ray checks.
+  Durability is editable addon balance: 100 per plate; chest 200, stomach 150, back 140 and helmet 160.
+  Health is 250. Native BLUE damage-property meanings and exact native durability remain unresolved.
+  Two native walks, four 90/180 turns, four attacks including two lunges, flinches and emergence are retained.
+  Four visual LODs plus shadow LOD preserve native geometry with distant facial/finger/toe bone collapse.
+  Nineteen native physics bodies produce one flesh ragdoll with remaining armor and native headshot gore.
+  Plate debris reuses existing named props and the shared client cap; no extra server armor entities.
+  Four shared idle/flinch audio events reference slots 107/143 absent from the native Heavy/head HSND tables.
+  Those markers remain without invented audio. Other events retain native names, timing and volumes.
+  Death uses the existing named zombie voice pool. The director cap defaults to two, including reservations.
+  za1_heavy_limit is available under DT Base > Zombie Army > Settings.
+
+Editing and rebuilding
+  addon/lua/za1/zombie_settings.lua: common audio, attacks, sever thresholds and horde settings.
+  addon/lua/za1/special_settings.lua: Skeleton, Suicide Grunt and Armored Heavy balance.
+  addon/lua/za1/skeleton_assets.lua: original armor loadouts, joints, hit bounds and bodygroup layout.
+  addon/lua/za1/armor.lua: shared bullet absorption, plate breakoff and durability persistence.
+  addon/lua/za1/heavy_assets.lua: native Heavy model, event bindings, plates and body-local hit bounds.
+  build_heavy.py / render_heavy.py / validate_heavy.py: incremental native export, preview and validation.
+  addon/lua/za1/skin_assets.lua: named prop aliases and skin indices.
+  build_skeleton_armor.py: rebuild removable armor from the cached original SMDs and LODs.
+  build_skeleton_variants.py / build_skin_families.py: incremental shared-model rebuilds.
+  addon/lua/za1/ranged_assets.lua: explicit gun-action start/end windows and native gun sounds.
+  addon/lua/za1/dismemberment.lua: severing, crawl states and limb-specific attacks.
+  src/zombie/zombie_soldier.qc: common bodygroups, LODs, sequences and ragdoll constraints.
+  src/specials/: special models and QCs. src/equipment/, src/gibs/, src/props/: static pieces.
+  src/ragdolls/: independent upper/lower render geometry, LODs and native constraints.
+  audit/models.csv, materials.csv and sounds.csv: named file inventories and provenance.
+  audit/project-report.json: structured report. Other audit JSONs retain decoded native records.
+  build_trilogy.py: export fresh common body/animation and whole-game Objects sources.
+  build_pipeline.py: finish native special/recovery/gear assets, compile and stage.
+  check_animation_poses.py --export: audit native poses and regenerate existing character SMDs.
+  recompile_characters.py: rebuild character models, preserving hitsets and LOD bindings;
+    --only undead_skeleton_infantry rebuilds just the shared Skeleton.
+  separate_skeleton_motion.py: prepare native actor/body separation before that recompile.
+  validate_skeleton_motion.py: native per-frame poses, weighted meshes, hitgroups and physics.
+  build_half_ragdolls.py: rebuild dedicated upper/lower corpses; validate_motion_halves.py checks them.
+  check_lua.py and validate_trilogy.py: behavior/asset checks. install_trilogy.py: verified install.
+  Old install/capsule migration utilities are archived under legacy-tools/.
+
+Limits and deliberate Source adaptations
+  Common soldier, Skeleton variants, Suicide Grunt and Armored Heavy enemy types are implemented.
+  Static prop collision uses a convex box from native mesh bounds.
+  Dedicated half ragdolls use native cut mesh groups with the matching subset of physics bodies.
+  Partial scalp/jaw cut sources remain archived; they are not separate gameplay head-wound states.
+  Source converts native ragdoll shapes/joint axes to its independent XYZ constraints.
+  The 70 kg common ragdoll mass is the export setting, not a recovered native body weight.
+  Head/neck look pose ranges come from shared Sniper look clips, not decoded Undead AI limits.
+  Native gun clips contain footsteps but no gun-fire markers; start/end windows and fire rate
+  are explicit addon integration settings, based on authored raise/recoil/lower poses.
+  Thompson uses its native Player loop-end event (which references an MP40 sample);
+  no dedicated Thompson NPC loop-end event was found. Luger uses named Pistol02 gun samples.
+  The pentagram uses the native texture with a bounded Source sprite reconstruction.
+  Native binary FX operators and the original AI chance values are not fully decoded.
+  42 common sound events have unbound native slots 105/106/107/117.
+  Their QC events and audit records are retained; no unrelated sound was substituted.
+  One native jaw-gib LOD contains non-finite UVs; its valid original LOD0 is used instead.
+  StudioMDL welds very close vertices and discards tiny slivers/duplicate zero-area faces;
+  geometry validation checks that authored visible limbs and surfaces survive at every LOD.
+
+Validation
+  All 89 models compiled successfully with matching MDL/VVD/VTX/PHY checksums.
+  Every compiled root and LOD material reference resolves to an installed VMT.
+  Native event timing and 5-frame motion extraction verified in compiled common sequences.
+  Every anatomy/gear hitbox set is checked against decoded native bounds.
+  49 runtime Lua files and 36,608 regression assertions pass
+  using Garry's Mod lua_shared.dll and installed DT functions with simulated entities.
+  Viewer: 53 Source/character/physics regression tests pass, including actor/body separation.
+  Native pose audit: 199 clip/rig evaluations, 199 SMD exports checked; no unsupported clips.
+  Existing DT Base and shared capsule project files match their baseline checksums.
+  In-game and multiplayer rendering/physics/performance still require a fresh-session test.
+
+Installation and compatibility
+  install_trilogy.py verifies the validated stage, copies outside addons, checks every file,
+  preserves the full old active addon under this project's backups/, and activates the new folder.
+  --patch verifies the current installation, backs up changes/removals and applies audited assets in place.
+  audit/installation.json records the exact destination, backup and every installed file hash.
+  Existing ZA1 entity classes, internal namespaces and convars are retained for compatibility.
+  Restart Garry's Mod and give every multiplayer client the entire new addon folder.
+  Remove the old active Zombie-Army-1-DT folder from client installations too.
+  The original ZombieArmy1 source tree and game archives stay intact.

@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/vertexlit/graphics/characters/undead_soldier_burnt/burnt_zombie_bag_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/vertexlit/graphics/characters/undead_soldier_burnt/burnt_zombie_bag_n"
+    "$phong" "1"
+    "$phongexponent" "3.15904721"
+    "$phongboost" "0.394880901"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/textures/vertexlit/lightwarps/graphics/characters/undead_soldier_burnt/burnt_zombie_bag_d"
+    "$model" "1"
+}

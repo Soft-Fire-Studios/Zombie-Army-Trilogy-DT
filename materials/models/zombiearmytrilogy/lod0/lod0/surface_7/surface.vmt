@@ -1,0 +1,6 @@
+"VertexLitGeneric"
+{
+ "$model" "1"
+ "$basetexture" "models/zombiearmytrilogy/solid_white"
+ "$color2" "[0.45 0.45 0.45]"
+}

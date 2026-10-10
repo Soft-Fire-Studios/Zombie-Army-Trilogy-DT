@@ -1,0 +1,11 @@
+{
+  "title": "Zombie Army Trilogy - DT NextBots",
+  "type": "npc",
+  "tags": [
+    "fun",
+    "roleplay"
+  ],
+  "ignore": [
+    "*.txt"
+  ]
+}

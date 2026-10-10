@@ -1,0 +1,10 @@
+"VertexLitGeneric"
+{
+ "$basetexture" "models/zombiearmytrilogy/textures/graphics/characters/undead_soldier_rotten/rotten_zombie_lod3_d"
+ "$model" "1"
+ "$phong" "1"
+ "$phongexponent" "12"
+ "$phongboost" "0.35"
+ "$phongfresnelranges" "[0.2 0.4 1]"
+ "$basemapalphaphongmask" "1"
+}
