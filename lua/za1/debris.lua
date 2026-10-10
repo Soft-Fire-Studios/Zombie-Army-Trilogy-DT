@@ -46,6 +46,35 @@ local cap=CreateClientConVar("za1_debris_cap","48",true,false,"Maximum local deb
 local lifetime=CreateClientConVar("za1_debris_lifetime","20",true,false,"Equipment debris lifetime",2,60)
 local distance=CreateClientConVar("za1_debris_distance","1800",true,false,"Maximum debris spawn distance",128,4096)
 local props={}
+local doors={}
+function D.Door(model,pos,angles,skin,groups,velocity,mins,maxs)
+    local config=ZA1.Config.Doors
+    if not enabled:GetBool() or cap:GetInt()<=0 then return end
+    local viewer=LocalPlayer()
+    if not IsValid(viewer) or viewer:EyePos():DistToSqr(pos)>distance:GetFloat()^2 then return end
+    for i=#doors,1,-1 do
+        if not IsValid(doors[i].entity) or CurTime()>=doors[i].expires then
+            if IsValid(doors[i].entity) then doors[i].entity:Remove() end
+            table.remove(doors,i)
+        end
+    end
+    while #doors>=config.DebrisCap do
+        if IsValid(doors[1].entity) then doors[1].entity:Remove() end
+        table.remove(doors,1)
+    end
+    local entity=ents.CreateClientProp(model)
+    if not IsValid(entity) then return end
+    entity:SetPos(pos);entity:SetAngles(angles);entity:SetSkin(skin)
+    for group,value in pairs(groups) do entity:SetBodygroup(group,value) end
+    entity:SetCollisionGroup(COLLISION_GROUP_DEBRIS);entity:Spawn();entity:Activate()
+    local phys=entity:GetPhysicsObject()
+    if not IsValid(phys) and model:sub(1,1)=="*" then
+        entity:PhysicsInitBox(mins,maxs);phys=entity:GetPhysicsObject()
+    end
+    if not IsValid(phys) then entity:Remove();return end
+    phys:SetVelocity(velocity);phys:AddAngleVelocity(VectorRand()*120);phys:Wake()
+    doors[#doors+1]={entity=entity,expires=CurTime()+config.DebrisLifetime}
+end
 local function Remove(index)
     local entry=table.remove(props,index)
     if IsValid(entry.entity) then entry.entity:Remove() end
@@ -57,6 +86,12 @@ local function Clean()
     end
     local limit=enabled:GetBool() and math.Clamp(cap:GetInt(),0,96) or 0
     while #props>limit do Remove(1) end
+    for i=#doors,1,-1 do
+        if not enabled:GetBool() or cap:GetInt()<=0 or not IsValid(doors[i].entity) or now>=doors[i].expires then
+            if IsValid(doors[i].entity) then doors[i].entity:Remove() end
+            table.remove(doors,i)
+        end
+    end
 end
 function D.Spawn(id,pos,angles,scale,velocity,skin,body)
     local model=A.Models[id]
@@ -95,4 +130,8 @@ net.Receive("ZA1/Breakup",function()
     end
 end)
 timer.Create("ZA1/DebrisCleanup",0.5,0,Clean)
-hook.Add("PostCleanupMap","ZA1/Debris",function() while #props>0 do Remove(#props) end end)
+hook.Add("PostCleanupMap","ZA1/Debris",function()
+    while #props>0 do Remove(#props) end
+    for _,door in ipairs(doors) do if IsValid(door.entity) then door.entity:Remove() end end
+    doors={}
+end)

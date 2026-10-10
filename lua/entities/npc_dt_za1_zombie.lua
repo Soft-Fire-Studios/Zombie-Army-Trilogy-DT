@@ -317,6 +317,7 @@ if SERVER then
             mins = Vector(-C.Melee.HullWidth, -C.Melee.HullWidth, -C.Melee.HullHeight),
             maxs = Vector(C.Melee.HullWidth, C.Melee.HullWidth, C.Melee.HullHeight), mask = MASK_SHOT_HULL, filter = self})
         local victim = tr.Entity
+        if ZA1.Doors and ZA1.Doors.Hit(self, victim, tr.HitPos) then return true end
         -- Other packs may expose an owning actor through a collision helper.
         if IsValid(victim) and victim.GetActor then
             local actor = victim:GetActor()
@@ -536,6 +537,7 @@ if SERVER then
             self:ZAPlayOnce(sequence)
             return
         end
+        if ZA1.Doors and ZA1.Doors.Try(self) then N.Follow(self); return end
         local enemy = self:GetEnemy()
         if self.ZADecisionEnemy ~= enemy then self.ZADecisionEnemy = enemy; M.Wake(self) end
         if CurTime() < (self.ZANextDecision or 0) then N.Follow(self); return end

@@ -350,6 +350,7 @@ local function Explosion(z, info)
     local data = EffectData(); data:SetOrigin(pos); data:SetScale(1)
     util.Effect("Explosion", data, true, true); S.Sound(z, "explosion", 90)
     local settings = z.ZASpecialSettings
+    if ZA1.Doors then ZA1.Doors.Blast(z, pos, settings.BlastRadius * z:GetModelScale(), settings.BlastDamage) end
     util.BlastDamage(inflictor, attacker, pos, settings.BlastRadius * z:GetModelScale(), settings.BlastDamage)
 end
 
@@ -449,6 +450,7 @@ function S.Event(z, event, time, cycle, typ, options)
         mins = Vector(-melee.HullWidth, -melee.HullWidth, -melee.HullHeight),
         maxs = Vector(melee.HullWidth, melee.HullWidth, melee.HullHeight), mask = MASK_SHOT_HULL, filter = z})
     local victim = tr.Entity
+    if ZA1.Doors and ZA1.Doors.Hit(z, victim, tr.HitPos) then return true end
     if IsValid(victim) and victim.GetActor then
         local actor = victim:GetActor()
         if IsValid(actor) then victim = actor end

@@ -87,12 +87,16 @@ function ENT:RecordKill(z)
         self.ZAKills = 0; self.ZAKillRequirement = self.ZAKillRequirement + 2 * self:GetThreatLevel() + 25
     end
 end
-function ENT:FindSpawn(players) return P.FindSpawn(self, players) end
-function ENT:SpawnZombie(players)
+function ENT:FindSpawn(players, class, deadline) return P.FindSpawn(self, players, class, deadline) end
+function ENT:SpawnZombie(players, deadline)
     if M.Count() >= M.PopulationLimit() then return false end
-    local pos, target = self:FindSpawn(players)
+    deadline = deadline or SysTime() + ZA1.Config.Population.WorkBudgetMS / 1000
+    local class = self.ZAPhase ~= "rest" and ZA1.Specials and ZA1.Specials.SelectClass(self) or "npc_dt_za1_zombie"
+    local pos, target = self:FindSpawn(players, class, deadline)
+    if not pos and class ~= "npc_dt_za1_zombie" and SysTime() < deadline then
+        class = "npc_dt_za1_zombie"; pos, target = self:FindSpawn(players, class, deadline)
+    end
     if not pos or not IsValid(target) then return false end
-    local class = ZA1.Specials and ZA1.Specials.SelectClass(self) or "npc_dt_za1_zombie"
     local z = ents.Create(class)
     if not IsValid(z) then return false end
     z.ZAEmerge = ZA1.Specials and ZA1.Specials.Emerge(class) or ZA1.Config.Animations.Emerge[math.random(#ZA1.Config.Animations.Emerge)]
@@ -136,13 +140,17 @@ function ENT:Think()
         self.ZAPhaseEnd = self.ZAElapsed + (self.ZAPhase == "buildup" and C.BuildupDuration or math.Rand(C.PeakMinDuration, C.PeakMaxDuration))
     end
     self:SetHordePhase(self.ZAPhase == "rest" and 3 or self.ZAPhase == "peak" and 2 or 1)
-    if self.ZAPhase == "rest" or now < self.ZANextSpawn then return true end
-    self.ZANextSpawn = now + math.Rand(C.SpawnMinDelay, C.SpawnMaxDelay)
+    if now < self.ZANextSpawn then return true end
+    local spawnTarget = self.ZAPhase == "rest" and math.min(targetCount, C.RestMinimum) or targetCount
     local group = self.ZAPhase == "peak" and C.PeakGroup or C.BuildupGroup
     local deadline = SysTime() + ZA1.Config.Population.WorkBudgetMS / 1000
-    for i = 1, math.min(group, targetCount - count - #self.ZADormant) do
-        if SysTime() >= deadline or not self:SpawnZombie(players) then break end
+    local spawned = 0
+    for i = 1, math.min(group, spawnTarget - count) do
+        if SysTime() >= deadline or not self:SpawnZombie(players, deadline) then break end
+        spawned = spawned + 1
     end
+    -- A pending scan, route or hidden special must not consume a full spawn delay.
+    self.ZANextSpawn = now + (spawned > 0 and math.Rand(C.SpawnMinDelay, C.SpawnMaxDelay) or C.ThinkInterval)
     self:SetHordeSize(M.Count())
     return true
 end

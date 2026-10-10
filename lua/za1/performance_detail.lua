@@ -1,6 +1,6 @@
 -- Temporary diagnostics around non-yielding operations. DT's registered hook
 -- functions run unchanged; only calls concerning registered ZA1 actors count.
-local D = {Revision = "think-detail-hitgroups-2026-10-08", SlowMS = 10, SlowLimit = 8, HookLimit = 128}
+local D = {Revision = "bounded-paths-visible-spawns-2026-10-10", SlowMS = 10, SlowLimit = 8, HookLimit = 128}
 local F, M, N, G, P = ZA1.Performance, ZA1.Manager, ZA1.Navigation, ZA1.Crowd, ZA1.Population
 local actorMethods = {"OnThink", "ZAUpdateSight", "IsAbleToSee", "UpdateRelationship", "UpdateDetection", "UpdateTarget",
     "GetEnemy", "UpdateEnemy", "OnEntityDetected", "HandleAnimEvent", "EmitSound", "EyePosAndAngles",
@@ -9,9 +9,10 @@ local hookEvents = {"DT/TickNextBot", "DT/PostTickNextBot", "DT/UpdateNextBotTar
     "DT/SightGained", "DT/SightKept", "DT/SightLost", "DT/EntityDetected", "DT/EntityLost", "DT/RelationshipChanged"}
 local modules = {
     {name = "awareness", module = M, methods = {"Rebuild", "ProcessHearing", "Alert", "Noise"}},
-    {name = "navigation", module = N, methods = {"BuildGraph", "BuildPaths", "Guide", "Expand", "Reachable"}},
+    {name = "navigation", module = N, methods = {"BuildGraph", "BuildPaths", "Compute", "Guide", "Expand", "Reachable"}},
     {name = "crowd", module = G, methods = {"Rebuild", "Neighbors", "Process", "Steer", "AttackGoal"}},
-    {name = "population", module = P, methods = {"Tick", "FindSpawn"}},
+    {name = "population", module = P, methods = {"Tick", "FindSpawn", "ScanCandidates"}},
+    {name = "doors", module = ZA1.Doors, methods = {"Observe", "Hit", "Break", "Blast"}},
     {name = "recovery", module = ZA1.Recovery, methods = {"Tick"}, actorArgument = 1},
     {name = "look", module = ZA1.Look, methods = {"Update"}, actorArgument = 1}
 }

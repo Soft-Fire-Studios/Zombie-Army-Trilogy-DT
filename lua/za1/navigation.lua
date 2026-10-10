@@ -4,7 +4,9 @@ local N = {Pending = setmetatable({}, {__mode = "k"}), Flows = {}, Nodes = {}, A
 ZA1.Navigation = N
 local C, M = ZA1.Config.Navigation, ZA1.Manager
 N.Stats = {pathBuilds = 0, pathMS = 0, pathFailures = 0, burstTicks = 0, flowNodes = 0, sharedGuides = 0, recoveries = 0, maxQueueAge = 0,
-    directChecks = 0, directClear = 0, directBlocked = 0, directTicks = 0}
+    directChecks = 0, directClear = 0, directBlocked = 0, directTicks = 0,
+    boundedSearches = 0, pathCostCalls = 0, routeWaits = 0, failedRouteHits = 0}
+include("za1/navigation_search.lua")
 local function Push(heap, id, cost)
     local i = #heap + 1
     local item = {id = id, cost = cost}
@@ -33,6 +35,7 @@ function N.Reset()
     N.Nodes, N.Areas, N.Flows, N.Spatial, N.Pending = {}, {}, {}, {}, setmetatable({}, {__mode = "k"})
     N.GraphIndex, N.GraphReady, N.Requested = nil, false, false
     N.Generation = (N.Generation or 0) + 1
+    N.ClearFailedRoutes()
 end
 function N.Begin() N.Requested = true end
 function N.Profile(z)
@@ -74,6 +77,33 @@ function N.LocalAreas(pos, radius)
         end
     end
     return result
+end
+function N.LocalAreaScan(pos, radius)
+    return {position = Vector(pos), radiusSquare = radius ^ 2, areas = {}, index = 1,
+        x = math.floor((pos.x - radius) / 1024), y = math.floor((pos.y - radius) / 1024),
+        firstY = math.floor((pos.y - radius) / 1024), lastY = math.floor((pos.y + radius) / 1024),
+        lastX = math.floor((pos.x + radius) / 1024)}
+end
+function N.ScanLocalAreas(scan, limit, deadline)
+    local checked = 0
+    while not scan.complete and checked < limit and SysTime() < deadline do
+        local row = N.Spatial[scan.x]
+        local bucket = row and row[scan.y]
+        local area = bucket and bucket[scan.index]
+        checked = checked + 1 -- Empty cells consume work too.
+        if area then
+            scan.index = scan.index + 1
+            local node = IsValid(area) and N.Nodes[area:GetID()]
+            if node and node.pos:DistToSqr(scan.position) <= scan.radiusSquare then
+                scan.areas[#scan.areas + 1] = area
+            end
+        else
+            scan.index, scan.y = 1, scan.y + 1
+            if scan.y > scan.lastY then scan.y, scan.x = scan.firstY, scan.x + 1 end
+            scan.complete = scan.x > scan.lastX
+        end
+    end
+    return checked
 end
 function N.BuildGraph(deadline)
     if not navmesh.IsLoaded() then return end
@@ -224,12 +254,13 @@ function N.Face(z, goal)
     z.loco:SetVelocity(Vector(0, 0, z:GetVelocity().z))
     N.PauseProgress(z)
 end
-function N.Request(z, goal, priority, directGoal)
+function N.Request(z, goal, priority, directGoal, routeGoal)
     if not directGoal and CurTime() < (z.ZAPathRetry or 0) then return end
     local old = N.Pending[z]
     local job = old or {queued = CurTime()}
     job.goal, job.priority = Vector(goal), priority or 0
     job.directGoal = directGoal and Vector(directGoal) or nil
+    job.routeGoal = Vector(routeGoal or goal)
     N.Pending[z] = job
 end
 local function Locomoting(z)
@@ -333,6 +364,7 @@ local function DirectClear(z, pos, goal)
     z.ZADirectEnemy = z:GetEnemy()
     local hull = util.TraceHull({start = pos, endpos = goal, mins = Vector(mins.x, mins.y, mins.z + 2), maxs = maxs,
         mask = MASK_NPCSOLID, collisiongroup = z:GetCollisionGroup(), filter = z.ZADirectFilter})
+    if hull.Hit and ZA1.Doors then ZA1.Doors.Observe(z, hull.Entity, goal) end
     return not hull.Hit and not hull.StartSolid and not hull.AllSolid and DirectGround(z, pos, goal)
 end
 function N.CheckDirectPaths()
@@ -378,7 +410,8 @@ function N.BuildPaths()
         local chosen, job, best, count, oldest = nil, nil, nil, 0, 0
         for z, pending in pairs(N.Pending) do
             if not M.Active(z) or not z.ZAMoveGoal then N.Pending[z] = nil
-            elseif (not C.DirectMovement or not pending.directGoal) and not z.ZAActing and Locomoting(z) then
+            elseif (not C.DirectMovement or not pending.directGoal) and not z.ZAActing and Locomoting(z)
+                and CurTime() >= (pending.waitUntil or 0) then
                 local age = CurTime() - pending.queued
                 count, oldest = count + 1, math.max(oldest, age)
                 local score = pending.priority + age * 4
@@ -391,21 +424,28 @@ function N.BuildPaths()
             if limit > M.PathBudget:GetInt() then N.Stats.burstTicks = N.Stats.burstTicks + 1 end
         end
         if i > 1 and SysTime() >= deadline then break end
-        N.Pending[chosen] = nil
-        local path, started = chosen:GetFollowPath(), SysTime()
-        -- Compute explicitly: invalid paths must retry even at identical coordinates.
-        local complete = path:Compute(chosen, job.goal, chosen:PathGenerator())
-        local elapsed = (SysTime() - started) * 1000
-        N.Stats.pathBuilds, N.Stats.pathMS = N.Stats.pathBuilds + 1, N.Stats.pathMS + elapsed
-        local wait = CurTime() - job.queued
-        N.Stats.maxQueueAge = math.max(N.Stats.maxQueueAge, wait)
-        if ZA1.Performance and ZA1.Performance.Capture then ZA1.Performance.PathWait(wait) end
-        chosen.ZAPathGoal = job.goal
-        chosen.ZAPathRefresh = CurTime() + math.Rand(C.RepathMinDelay, C.RepathMaxDelay)
-        if not complete then
+        local ready = N.RouteReady(chosen, job)
+        if ready == nil then
+            job.waitUntil = CurTime() + 0.05 -- Continue the existing path while the shared search advances.
+        elseif ready == false then
+            N.Pending[chosen] = nil
             chosen.ZAPathRetry = CurTime() + C.RetryDelay
-            N.Stats.pathFailures = N.Stats.pathFailures + 1
-        else chosen.ZAPathRetry = nil end
+        else
+            N.Pending[chosen] = nil
+            local complete, elapsed, bounded = N.Compute(chosen, job, deadline)
+            N.Stats.pathBuilds, N.Stats.pathMS = N.Stats.pathBuilds + 1, N.Stats.pathMS + elapsed
+            local wait = CurTime() - job.queued
+            N.Stats.maxQueueAge = math.max(N.Stats.maxQueueAge, wait)
+            if ZA1.Performance and ZA1.Performance.Capture then ZA1.Performance.PathWait(wait) end
+            chosen.ZAPathGoal = job.goal
+            chosen.ZAPathRefresh = CurTime() + math.Rand(C.RepathMinDelay, C.RepathMaxDelay)
+            if not complete then
+                local delay = bounded and C.BoundedRetryDelay or C.RetryDelay
+                chosen.ZAPathRetry = CurTime() + delay
+                N.RememberFailure(chosen, job, bounded and delay or C.FailedRouteLifetime)
+                if not bounded then N.Stats.pathFailures = N.Stats.pathFailures + 1 end
+            else chosen.ZAPathRetry = nil end
+        end
         if SysTime() >= deadline then break end
     end
 end
@@ -432,7 +472,7 @@ function N.Move(z, goal, priority)
     local reached = not z.ZACloseGoal and z.ZAPathGoal and z:GetPos():DistToSqr(z.ZAPathGoal) <= tolerance ^ 2
     if not IsValid(path) or not z.ZAPathGoal or reached
         or CurTime() >= (z.ZAPathRefresh or 0) and z.ZAPathGoal:DistToSqr(guide) > C.RepathDistance ^ 2 then
-        N.Request(z, guide, priority)
+    N.Request(z, guide, priority, nil, goal)
     end
 end
 function N.Follow(z)
@@ -465,7 +505,7 @@ function N.Follow(z)
     local cached = z.ZADirect
     local direct = cached and N.DirectUsable(z, cached.goal, pos)
     if not direct and not IsValid(path) then
-        if not N.Pending[z] then N.Request(z, (z.ZAMovePriority or 0) > 0 and N.Guide(z, z.ZAMoveGoal) or z.ZAMoveGoal, z.ZAMovePriority) end
+        if not N.Pending[z] then N.Request(z, (z.ZAMovePriority or 0) > 0 and N.Guide(z, z.ZAMoveGoal) or z.ZAMoveGoal, z.ZAMovePriority, nil, z.ZAMoveGoal) end
         -- DT clears this flag each tick. While a route check waits, animate
         -- any remaining braking velocity without issuing unsafe movement.
         z.__DT_IsMoving = N.Pending[z] ~= nil and z:GetVelocity():Length2D() > 0
@@ -510,7 +550,7 @@ function N.Follow(z)
         z.ZAPathRefresh, z.ZAPathRetry = 0, nil
         if direct then z.ZADirect = nil; z.ZADirectRetry = CurTime() + C.RetryDelay end
         if ZA1.Crowd then ZA1.Crowd.Recover(z) end
-        N.Request(z, (z.ZAMovePriority or 0) > 0 and N.Guide(z, z.ZAMoveGoal) or z.ZAMoveGoal, 2)
+        N.Request(z, (z.ZAMovePriority or 0) > 0 and N.Guide(z, z.ZAMoveGoal) or z.ZAMoveGoal, 2, nil, z.ZAMoveGoal)
         N.Stats.recoveries = N.Stats.recoveries + 1
     end
 end

@@ -17,6 +17,8 @@ M.Cap = CreateConVar("za1_population_cap", "100", flags, "Director common popula
 M.InitialDensity = CreateConVar("za1_director_initial_density", tostring(ZA1.Config.Director.InitialDensity), flags, "Starting director target; limited by the common zombie cap.", 0, 100)
 M.DensityPerMinute = CreateConVar("za1_director_density_per_minute", tostring(ZA1.Config.Director.DensityPerMinute), flags, "Additional target zombies per active minute; 0 keeps density constant.", 0, 100)
 M.Radius = CreateConVar("za1_director_radius", tostring(ZA1.Config.Population.SpawnMaxDistance), flags, "Director radius around each living player.", 960, 8192)
+M.SpawnMinRadius = CreateConVar("za1_director_spawn_min_radius", tostring(ZA1.Config.Population.SpawnMinDistance), flags, "Minimum spawn distance from every living player; kept below the maximum radius.", 128, 8192)
+M.VisibleCommons = CreateConVar("za1_director_visible_commons", ZA1.Config.Population.VisibleCommonSpawns and "1" or "0", flags, "Allow common zombies to emerge in view; specials still spawn unseen.", 0, 1)
 M.RetireDelay = CreateConVar("za1_recycle_delay", tostring(ZA1.Config.Population.SleepDelay), flags, "Seconds outside player radii and unseen before recycling.", 3, 60)
 M.EventDistance = CreateConVar("za1_event_sound_distance", tostring(ZA1.Config.Audio.EventDistance), flags, "Maximum player distance for animation sounds; 0 disables culling.", 0, 4096)
 M.DirectorEnabled = CreateConVar("za1_director_running", "1", flags, "Allow the Zombie Army director to populate the map.", 0, 1)
@@ -36,6 +38,7 @@ M.HeavyLimit = CreateConVar("za1_heavy_limit", tostring(specials.HeavyLimit), fl
 util.AddNetworkString("ZA1/Music")
 util.AddNetworkString("ZA1/Setting")
 local settings = {za1_wander={0,1},za1_alert_range={128,1500},za1_population_cap={8,100},za1_director_initial_density={0,100},za1_director_density_per_minute={0,100},za1_director_running={0,1},za1_director_radius={960,8192},za1_recycle_delay={3,60},za1_event_sound_distance={0,4096},za1_ragdoll_lifetime={10,180},za1_ragdoll_cap={0,64},
+    za1_director_spawn_min_radius={128,8192},za1_director_visible_commons={0,1},
     za1_crowd={0,1},za1_shared_routes={0,1},za1_dormancy={0,1},za1_path_budget={1,8},za1_path_burst={1,16},
     za1_specials={0,1},za1_special_chance={0,50},za1_skeleton_limit={0,12},za1_suicide_limit={0,6},za1_heavy_limit={0,6}}
 net.Receive("ZA1/Setting", function(_, ply)
@@ -43,7 +46,10 @@ net.Receive("ZA1/Setting", function(_, ply)
     local name, value = net.ReadString(), net.ReadFloat()
     local limits = settings[name]
     if limits and value == value then
-        GetConVar(name):SetFloat(math.Clamp(math.Round(value), limits[1], limits[2]))
+        value = math.Clamp(math.Round(value), limits[1], limits[2])
+        if name == "za1_director_spawn_min_radius" then value = math.min(value, math.Clamp(M.Radius:GetFloat(), 960, 8192) - 64) end
+        GetConVar(name):SetFloat(value)
+        if name == "za1_director_radius" and M.SpawnMinRadius:GetFloat() >= value - 64 then M.SpawnMinRadius:SetFloat(value - 64) end
         if name == "za1_director_running" and IsValid(M.Director) then M.Director:SetRunning(M.DirectorEnabled:GetBool()) end
     end
 end)

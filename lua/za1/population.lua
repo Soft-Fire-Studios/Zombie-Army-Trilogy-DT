@@ -3,7 +3,50 @@ local P = {}
 ZA1.Population = P
 local C, M, N = ZA1.Config.Population, ZA1.Manager, ZA1.Navigation
 local visibilityHeights = {10, 40, 72}
-P.Stats = {retired = 0, restored = 0, spawnChecks = 0, spawnRejects = 0}
+P.Stats = {retired = 0, restored = 0, spawnChecks = 0, spawnRejects = 0, candidateChecks = 0, candidateMS = 0}
+P.Stats.spawnPending, P.Stats.spawnRadiusRejects, P.Stats.spawnVisibilityRejects = 0, 0, 0
+P.Stats.spawnNavRejects, P.Stats.spawnGroundRejects = 0, 0
+local commonClasses = {npc_dt_za1_zombie = true, npc_dt_za1_zombie_camo = true, npc_dt_za1_zombie_camo2 = true}
+function P.VisibleSpawn(class)
+    return M.VisibleCommons:GetBool() and commonClasses[class or "npc_dt_za1_zombie"] == true
+end
+function P.SpawnRadii()
+    local maximum = math.Clamp(M.Radius:GetFloat(), 960, 8192)
+    -- Leave at least one full common hull's width inside the spawn ring.
+    return math.Clamp(M.SpawnMinRadius:GetFloat(), 128, maximum - 64), maximum
+end
+function P.SpawnProfile(class)
+    local profile = N.Profile()
+    local stored = scripted_ents.GetStored(class or "npc_dt_za1_zombie")
+    local definition = stored and stored.t
+    if definition then profile.height, profile.width = definition.Height or profile.height, definition.Width or profile.width end
+    profile.key = profile.step .. ":" .. profile.drop .. ":" .. profile.height .. ":" .. profile.width
+    return profile
+end
+P.CandidateTasks, P.CandidateCursor = {}, 1
+local function ValidTask(cache)
+    return IsValid(cache.director) and IsValid(cache.player)
+        and cache.director.ZASpawnCache[cache.player] == cache and cache.generation == N.Generation
+end
+function P.ScanCandidates()
+    if #P.CandidateTasks == 0 then return end
+    local started = SysTime()
+    local deadline, checked = started + C.CandidateScanBudgetMS / 1000, 0
+    while #P.CandidateTasks > 0 and checked < C.CandidateAreasPerTick and SysTime() < deadline do
+        local index = (P.CandidateCursor - 1) % #P.CandidateTasks + 1
+        local cache = P.CandidateTasks[index]
+        if not ValidTask(cache) or cache.scan.complete then table.remove(P.CandidateTasks, index)
+        else
+            checked = checked + N.ScanLocalAreas(cache.scan, math.min(32, C.CandidateAreasPerTick - checked), deadline)
+            if cache.scan.complete then cache.expires = CurTime() + C.CandidateLifetime end
+            P.CandidateCursor = index + 1
+        end
+    end
+    P.Stats.candidateChecks = P.Stats.candidateChecks + checked
+    P.Stats.candidateMS = P.Stats.candidateMS + (SysTime() - started) * 1000
+end
+hook.Add("Think", "ZA1/SpawnCandidates", P.ScanCandidates)
+hook.Add("PostCleanupMap", "ZA1/SpawnCandidates", function() P.CandidateTasks, P.CandidateCursor = {}, 1 end)
 function P.Setup(director)
     director.ZADormant, director.ZAActors, director.ZASpawnCache = {}, {}, setmetatable({}, {__mode = "k"})
     director.ZAActorCursor, director.ZADormantCursor = 1, 1
@@ -32,20 +75,28 @@ function P.Hidden(pos, viewers)
     end
     return true
 end
-function P.ClearGround(pos, filter)
+function P.ClearGround(pos, filter, profile)
     local ground = util.TraceLine({start = pos + Vector(0, 0, 24), endpos = pos - Vector(0, 0, 96), mask = MASK_NPCSOLID_BRUSHONLY, filter = filter})
     if not ground.Hit or ground.StartSolid or ground.HitNormal.z < 0.6 then return end
     pos = ground.HitPos + Vector(0, 0, 2)
-    local hull = util.TraceHull({start = pos, endpos = pos, mins = Vector(-16, -16, 2), maxs = Vector(16, 16, 74), mask = MASK_NPCSOLID, filter = filter, collisiongroup = COLLISION_GROUP_NPC})
+    local width, height = profile and profile.width + 2 or 16, profile and profile.height or 74
+    local hull = util.TraceHull({start = pos, endpos = pos, mins = Vector(-width, -width, 2), maxs = Vector(width, width, height), mask = MASK_NPCSOLID, filter = filter, collisiongroup = COLLISION_GROUP_NPC})
     if not hull.Hit and not hull.StartSolid then return pos end
 end
-function P.FindSpawn(director, players)
+local function OnNav(area, pos, profile)
+    return IsValid(area) and area:Contains(pos)
+        and math.abs(area:GetClosestPointOnArea(pos).z - pos.z) <= profile.step
+end
+function P.FindSpawn(director, players, class, deadline, profile)
     N.Begin()
-    if not N.GraphReady or #players == 0 then return end
-    local viewers = player.GetHumans()
-    local radius = math.Clamp(M.Radius:GetFloat(), 960, 8192)
+    if #players == 0 then return end
+    if not N.GraphReady then P.Stats.spawnPending = P.Stats.spawnPending + 1; return end
+    local visible = P.VisibleSpawn(class)
+    local viewers = not visible and player.GetHumans()
+    local minimum, radius = P.SpawnRadii()
+    profile = profile or P.SpawnProfile(class)
     local positions = {}; for _, ply in ipairs(players) do positions[ply] = ply:GetPos() end
-    local deadline = SysTime() + C.WorkBudgetMS / 1000
+    deadline = math.min(deadline or math.huge, SysTime() + C.WorkBudgetMS / 1000)
     -- Cache local candidates and shared reachability, never final LOS/occupancy.
     for attempt = 1, C.SpawnCandidates do
         if SysTime() >= deadline then break end
@@ -53,28 +104,49 @@ function P.FindSpawn(director, players)
         local target = players[director.ZASpawnCursor]
         local center = positions[target]
         local cached = director.ZASpawnCache[target]
-        if not cached or cached.radius ~= radius or CurTime() >= cached.expires or center:DistToSqr(cached.position) > 512 ^ 2 then
-            cached = {position = Vector(center), radius = radius, areas = N.LocalAreas(center, radius), expires = CurTime() + C.CandidateLifetime}
+        if not cached or cached.radius ~= radius or cached.generation ~= N.Generation
+            or cached.scan.complete and CurTime() >= cached.expires or center:DistToSqr(cached.position) > 512 ^ 2 then
+            local scan = N.LocalAreaScan(center, radius)
+            cached = {position = Vector(center), radius = radius, areas = scan.areas, scan = scan,
+                generation = N.Generation, director = director, player = target, expires = math.huge}
             director.ZASpawnCache[target] = cached
+            P.CandidateTasks[#P.CandidateTasks + 1] = cached
+            -- Tiny caches can finish now; large scans continue in the shared queue.
+            local checked = N.ScanLocalAreas(scan, C.CandidateAreasPerTick, math.min(deadline, SysTime() + C.CandidateScanBudgetMS / 1000))
+            P.Stats.candidateChecks = P.Stats.candidateChecks + checked
+            if scan.complete then cached.expires = CurTime() + C.CandidateLifetime end
         end
         local areas = cached.areas
-        N.GetFlow(center)
+        -- Use candidates as they arrive; do not wait for a large scan to finish.
+        -- Visit each cached area before repeating it, with a randomized start.
         if #areas > 0 then
-            local area = areas[math.random(#areas)]
-            if not area:IsBlocked() and not area:IsUnderwater() and N.Reachable(area, center) == true then
+            cached.cursor = (cached.cursor or math.random(#areas))
+            local area = areas[cached.cursor]
+            cached.cursor = cached.cursor % #areas + 1
+            if IsValid(area) and not area:IsBlocked() and not area:IsUnderwater() then
                 local pos = area:GetRandomPoint()
                 local nearest, distance = Nearest(pos, players, positions)
                 P.Stats.spawnChecks = P.Stats.spawnChecks + 1
-                if distance >= C.SpawnMinDistance ^ 2 and distance <= radius ^ 2 then
-                    local ground = P.ClearGround(pos)
-                    if ground then
+                if distance >= minimum ^ 2 and distance <= radius ^ 2 then
+                    local routeTarget = nearest
+                    local reachable = N.Reachable(area, positions[nearest], profile)
+                    local ground = reachable == true and P.ClearGround(pos, nil, profile)
+                    if ground and OnNav(area, ground, profile) then
                         nearest, distance = Nearest(ground, players, positions)
-                        if distance >= C.SpawnMinDistance ^ 2 and distance <= radius ^ 2 and P.Hidden(ground, viewers)
-                            and N.Reachable(N.Area(ground), positions[nearest]) == true then return ground, nearest end
-                    end
-                end
-            end
-        end
+                        if distance >= minimum ^ 2 and distance <= radius ^ 2 then
+                            if nearest ~= routeTarget then reachable = N.Reachable(area, positions[nearest], profile) end
+                            if reachable == true then
+                                if visible or P.Hidden(ground, viewers) then return ground, nearest end
+                                P.Stats.spawnVisibilityRejects = P.Stats.spawnVisibilityRejects + 1
+                            elseif reachable == nil then P.Stats.spawnPending = P.Stats.spawnPending + 1
+                            else P.Stats.spawnNavRejects = P.Stats.spawnNavRejects + 1 end
+                        else P.Stats.spawnRadiusRejects = P.Stats.spawnRadiusRejects + 1 end
+                    elseif reachable == nil then P.Stats.spawnPending = P.Stats.spawnPending + 1
+                    elseif reachable == false then P.Stats.spawnNavRejects = P.Stats.spawnNavRejects + 1
+                    else P.Stats.spawnGroundRejects = P.Stats.spawnGroundRejects + 1 end
+                else P.Stats.spawnRadiusRejects = P.Stats.spawnRadiusRejects + 1 end
+            else P.Stats.spawnNavRejects = P.Stats.spawnNavRejects + 1 end
+        elseif not cached.scan.complete then P.Stats.spawnPending = P.Stats.spawnPending + 1 end
     end
     P.Stats.spawnRejects = P.Stats.spawnRejects + 1
 end
@@ -106,20 +178,25 @@ function P.Retire(director, z)
 end
 function P.Restore(director, record, players)
     if M.Count() >= M.PopulationLimit() or record.health <= 0 then return false end
+    local profile = record.navProfile or P.SpawnProfile(record.class)
     local pos, target
-    if record.relocate then pos, target = P.FindSpawn(director, players)
+    if record.relocate then pos, target = P.FindSpawn(director, players, record.class, nil, profile)
     else
         target = Nearest(record.position, players)
         local area = N.Area(record.position)
-        if not target or not area or area:IsBlocked() or N.Reachable(area, target:GetPos(), record.navProfile) ~= true then return false end
-        pos = P.ClearGround(record.position)
-        if pos and not P.Hidden(pos, player.GetHumans()) then pos = nil end
+        if not target or not area or area:IsBlocked() or N.Reachable(area, target:GetPos(), profile) ~= true then return false end
+        pos = P.ClearGround(record.position, nil, profile)
+        local minimum, maximum = P.SpawnRadii()
+        local _, distance = Nearest(pos or record.position, players)
+        if pos and (not OnNav(area, pos, profile)
+            or not distance or distance < minimum ^ 2 or distance > maximum ^ 2
+            or not P.VisibleSpawn(record.class) and not P.Hidden(pos, player.GetHumans())) then pos = nil end
     end
     if not pos or not IsValid(target) then return false end
     local z = ents.Create(record.class)
     if not IsValid(z) then return false end
     z.ZAWeapon = record.groups[ZA1.Config.Equipment.WeaponBodygroup] or 0
-    if record.relocate then z.ZAEmerge = ZA1.Specials and ZA1.Specials.Emerge(record.class) or ZA1.Config.Animations.Emerge[math.random(#ZA1.Config.Animations.Emerge)] end
+    if record.relocate or P.VisibleSpawn(record.class) then z.ZAEmerge = ZA1.Specials and ZA1.Specials.Emerge(record.class) or ZA1.Config.Animations.Emerge[math.random(#ZA1.Config.Animations.Emerge)] end
     z:SetPos(pos); z:SetAngles(record.angles); z:Spawn()
     if not IsValid(z) then return false end
     z:SetMaxHealth(record.maxHealth); z:SetHealth(record.health); z:SetSkin(record.skin); z:SetModelScale(record.scale)
@@ -149,14 +226,15 @@ function P.Tick(director, players)
     local viewers, positions = player.GetHumans(), {}
     for _, ply in ipairs(players) do positions[ply] = ply:GetPos() end
     -- Restore pending replacements first; retirement reserves a future slot.
+    local restoreLimit = math.min(M.PopulationLimit(), director:GetDensityTarget())
     for i = 1, math.min(C.ChecksPerTick, #records) do
-        if #records == 0 or changes >= C.ChangesPerTick or M.Count() >= M.PopulationLimit() or SysTime() >= deadline then break end
+        if #records == 0 or changes >= C.ChangesPerTick or M.Count() >= restoreLimit or SysTime() >= deadline then break end
         local index = (director.ZADormantCursor - 1) % #records + 1
         local record = records[index]
         local _, distance = Nearest(record.position, players, positions)
         if (record.relocate or not M.Dormancy:GetBool() or distance < C.WakeDistance ^ 2) and P.Restore(director, record, players) then
             table.remove(records, index); changes = changes + 1
-        else director.ZADormantCursor = index + 1; break end
+        else director.ZADormantCursor = index + 1 end
     end
     local radiusSquare = math.Clamp(M.Radius:GetFloat(), 960, 8192) ^ 2
     -- At most 100 owned actors: refresh distances cheaply, sample LOS separately.

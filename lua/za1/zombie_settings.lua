@@ -16,7 +16,8 @@ return {
         ThinkInterval = 0.5, SpawnMinDelay = 1.5, SpawnMaxDelay = 3,
         BuildupGroup = 2, PeakGroup = 4,
         BuildupDuration = 30, PeakMinDuration = 25, PeakMaxDuration = 40,
-        RestMinDuration = 18, RestMaxDuration = 28
+        RestMinDuration = 18, RestMaxDuration = 28,
+        RestMinimum = 2 -- Keep a small common presence during lulls, even after a wipe.
     },
     Equipment = {
         HeadwearBodygroup = 4,
@@ -41,6 +42,12 @@ return {
         StationarySpeed = 10,
         RetargetAngle = 45, -- Stop an old turn when the target changes direction.
         Cooldown = 0.35
+    },
+    Doors = {
+        Enabled = true, Health = 100, Damage = 20,
+        ProbeDistance = 160, ProbeInterval = 0.35,
+        AttackRange = 60, FacingAngle = 50,
+        DebrisLifetime = 12, DebrisCap = 12, KnockSpeed = 180
     },
     Impact = {MinMass = 2, MinSpeed = 180, EnergyPerDamage = 5000, MaxDamage = 200, Cooldown = 0.2},
     Sever = {LimbDamage = 55, ExplosionDamage = 80, AbdomenDamage = 35},
@@ -69,6 +76,11 @@ return {
         PathBurstBuildsPerTick = 8, -- Clear backlogs while native paths are cheap.
         PathBurstQueueAge = 0.1,
         PathBudgetMS = 1.5,
+        PathSearchMS = 1.25,
+        PathCostCallsPerBuild = 512,
+        BoundedRetryDelay = 0.25,
+        FailedRouteLifetime = 2,
+        FailedRouteLimit = 256,
         RetryDelay = 1,
         SharedRouteDistance = 256,
         SharedRouteHops = 6,
@@ -123,6 +135,7 @@ return {
     Population = {
         SpawnMinDistance = 750,
         SpawnMaxDistance = 3200,
+        VisibleCommonSpawns = true, -- Commons emerge from the ground in view.
         WakeDistance = 3200,
         SleepDistance = 4500, -- Hysteresis keeps actors from being repeatedly retired/restored.
         SleepDelay = 10,
@@ -132,6 +145,8 @@ return {
         ChecksPerTick = 8,
         SpawnCandidates = 8,
         CandidateLifetime = 4,
+        CandidateAreasPerTick = 128,
+        CandidateScanBudgetMS = 0.5,
         WorkBudgetMS = 2
     },
     Wander = {Radius = 450, MinDelay = 7, MaxDelay = 14, Duration = 7, Tries = 8},

@@ -30,6 +30,8 @@ for sequence,binding in pairs(ZA1.RevivalAssets.animationSounds) do ZA1.Assets.a
 for file,duration in pairs(ZA1.RevivalAssets.soundDurations) do ZA1.Assets.soundDurations[file]=duration end
 AddCSLuaFile("za1/equipment_assets.lua")
 include("za1/debris.lua")
+AddCSLuaFile("za1/doors.lua")
+if CLIENT then include("za1/doors.lua") end
 include("za1/equipment.lua")
 include("za1/dismemberment.lua")
 include("za1/gore.lua")
@@ -43,6 +45,7 @@ if SERVER then
     include("za1/ranged.lua")
     include("za1/awareness.lua")
     include("za1/navigation.lua")
+    include("za1/doors.lua")
     include("za1/crowd.lua")
     include("za1/motion.lua")
     include("za1/population.lua")
@@ -56,6 +59,8 @@ else
         za1_director_initial_density=tostring(ZA1.Config.Director.InitialDensity),
         za1_director_density_per_minute=tostring(ZA1.Config.Director.DensityPerMinute),
         za1_director_radius="3200", za1_recycle_delay="10", za1_dormancy="1",
+        za1_director_spawn_min_radius=tostring(ZA1.Config.Population.SpawnMinDistance),
+        za1_director_visible_commons=ZA1.Config.Population.VisibleCommonSpawns and "1" or "0",
         za1_wander="1", za1_alert_range="600", za1_event_sound_distance="1400",
         za1_ragdoll_lifetime="45", za1_ragdoll_cap="24", za1_crowd="1",
         za1_shared_routes="1", za1_path_budget="2", za1_path_burst="8",
@@ -101,7 +106,10 @@ if CLIENT then
             slider("Starting horde density", "za1_director_initial_density", 0, 100)
             slider("Density increase per minute", "za1_director_density_per_minute", 0, 100)
             panel:Help("Density is the director's population target, capped by the limit above. Set growth to 0 for a fixed target. Each additional living player adds 4. Changes adjust spawning without removing existing zombies.")
-            slider("Player radius", "za1_director_radius", 960, 8192)
+            slider("Minimum spawn radius", "za1_director_spawn_min_radius", 128, 8192)
+            slider("Maximum spawn / player radius", "za1_director_radius", 960, 8192)
+            checkbox("Common zombies can emerge in view", "za1_director_visible_commons")
+            panel:Help("Spawns stay outside the minimum distance from every living player and inside the maximum radius of a living player. Specials emerge out of sight. The maximum radius also controls distant recycling.")
             checkbox("Recycle distant unseen zombies", "za1_dormancy")
             slider("Unseen retirement delay (seconds)", "za1_recycle_delay", 3, 60)
             checkbox("Director spawns special enemies", "za1_specials")

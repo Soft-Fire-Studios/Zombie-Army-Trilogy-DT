@@ -111,6 +111,21 @@ function F.PathWait(seconds)
     local samples = capture.watch and Frame(capture).pathWaits or capture.pathWaits
     if not capture.watch or #samples < 64 then samples[#samples + 1] = seconds * 1000 end
 end
+function F.PathSearch(z, job, started, elapsed, complete, valid, calls, bounded)
+    local capture = F.Capture
+    if not capture or complete and not bounded and elapsed < 2 then return end
+    local frame = Frame(capture)
+    frame.pathSearches = frame.pathSearches or {}
+    if #frame.pathSearches >= 8 then return end
+    local from, goal = N.Area(z:GetPos()), N.Area(job.goal)
+    local door = z.ZADoorTarget or z.ZABlockedDoor
+    frame.pathSearches[#frame.pathSearches + 1] = {atMS = (started - capture.started) * 1000,
+        elapsedMS = elapsed, tick = frame.tick, actor = {index = z:EntIndex(), class = z:GetClass()},
+        fromArea = from and from:GetID(), goalArea = goal and goal:GetID(),
+        from = z:GetPos(), goal = job.goal, routeGoal = job.routeGoal,
+        complete = complete, validPartialPath = not complete and valid, bounded = bounded, costCalls = calls,
+        blocker = IsValid(door) and {index = door:EntIndex(), class = door:GetClass()} or nil}
+end
 -- These include nested ZA1 timers. Keep them separate from addonMS to avoid
 -- counting Follow/Move/Visible twice. Never time a yielding behavior directly.
 function F.ProfileActor(z)
@@ -221,6 +236,17 @@ function F.Stop(reason)
     for name, samples in pairs(dtParts) do report.dtActorMSPerTick[name] = Distribution(samples) end
     report.luaMemoryKB = {initial = frames[1] and frames[1].luaMemoryKB, final = collectgarbage("count"), distribution = Distribution(memories)}
     report.partialTickRecords, report.slowTickCount = partial, #slow
+    local pathSearches = {}
+    for _, frame in ipairs(frames) do
+        for _, search in ipairs(frame.pathSearches or {}) do
+            local row = table.Copy(search); row.atMS = row.atMS - origin
+            pathSearches[#pathSearches + 1] = row
+        end
+    end
+    table.sort(pathSearches, function(a, b) return a.elapsedMS > b.elapsedMS end)
+    report.recordedPathSearches = #pathSearches
+    for i = #pathSearches, 33, -1 do pathSearches[i] = nil end
+    report.pathSearches = pathSearches
     report.detail = Detail.Report(capture, frames, origin, Distribution)
     table.sort(slow, function(a, b) return a.intervalMS > b.intervalMS end)
     for i = 1, math.min(16, #slow) do report.slowTicks[i] = slow[i] end
@@ -268,7 +294,8 @@ function F.Start(ply, seconds, thresholdMS)
         F.LastWatch = nil
     end
     F.Capture = capture
-    for name, label in pairs({["ZA1/SharedTick"] = "awareness", ["ZA1/Navigation"] = "navigation", ["ZA1/Crowd"] = "crowd"}) do
+    for name, label in pairs({["ZA1/SharedTick"] = "awareness", ["ZA1/Navigation"] = "navigation", ["ZA1/Crowd"] = "crowd",
+        ["ZA1/SpawnCandidates"] = "population"}) do
         local original = hook.GetTable().Think[name]
         capture.hooks[name], capture.samples[label] = original, {}
         local wrapper = function(...)
