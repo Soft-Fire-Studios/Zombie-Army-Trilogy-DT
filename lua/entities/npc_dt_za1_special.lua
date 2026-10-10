@@ -53,6 +53,7 @@ if SERVER then
             ZA1.Gore.Ragdoll(self, rag)
         end
         if self.ZASpecial == "heavy" then S.DeathVoice(self, rag) end
+        if self.ZASpecial == "suicide" then ZA1.CorpseCharges.Register(self,rag) end
         ZA1.Manager.Ragdoll(rag)
     end
     function ENT:ZACombat(enemy) return S.Combat(self, enemy) end

@@ -363,7 +363,7 @@ local function DirectClear(z, pos, goal)
     end
     z.ZADirectEnemy = z:GetEnemy()
     local hull = util.TraceHull({start = pos, endpos = goal, mins = Vector(mins.x, mins.y, mins.z + 2), maxs = maxs,
-        mask = MASK_NPCSOLID, collisiongroup = z:GetCollisionGroup(), filter = z.ZADirectFilter})
+        mask = MASK_SOLID, collisiongroup = COLLISION_GROUP_NONE, filter = z.ZADirectFilter})
     if hull.Hit and ZA1.Doors then ZA1.Doors.Observe(z, hull.Entity, goal) end
     return not hull.Hit and not hull.StartSolid and not hull.AllSolid and DirectGround(z, pos, goal)
 end
@@ -528,11 +528,12 @@ function N.Follow(z)
     end
     -- Crowd avoidance's checked point also determines facing.
     local steer = ZA1.Crowd and ZA1.Crowd.Steer(z, path, destination)
+    local obstacle=ZA1.Obstacles and ZA1.Obstacles.Steer(z,path,steer or destination)
     if CurTime() < (z.ZAYieldUntil or 0) then N.PauseProgress(z); return end
     -- Obstacle routes still advance PathFollower's current segment while
     -- avoiding neighbours; a cached steer point must not freeze its cursor.
-    if not destination then path:Update(z) end
-    destination = steer or destination
+    if not destination and not obstacle and IsValid(path) then path:Update(z) end
+    destination = obstacle or steer or destination
     if destination then z:Approach(destination); z:FaceTowards(destination) end
     z.__DT_IsMoving, z.__DT_IsTurning = true, true
     if (not direct and not IsValid(path)) or CurTime() < (z.ZAYieldUntil or 0) then N.PauseProgress(z); return end

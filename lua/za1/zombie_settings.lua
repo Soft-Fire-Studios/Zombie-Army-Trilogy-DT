@@ -15,9 +15,10 @@ return {
         MaxCommon = 100, InitialDensity = 12, DensityPerMinute = 12,
         ThinkInterval = 0.5, SpawnMinDelay = 1.5, SpawnMaxDelay = 3,
         BuildupGroup = 2, PeakGroup = 4,
-        BuildupDuration = 30, PeakMinDuration = 25, PeakMaxDuration = 40,
-        RestMinDuration = 18, RestMaxDuration = 28,
-        RestMinimum = 2 -- Keep a small common presence during lulls, even after a wipe.
+        BuildupDuration = 20, PeakMinDuration = 25, PeakMaxDuration = 40,
+        RestMinDuration = 6, RestMaxDuration = 10, RestEarlyExit = 4,
+        ReliefCooldown = 25, RestFraction = 0.25, RestMaximum = 12,
+        RestMinimum = 4 -- Keep commons arriving during relief, including after a wipe.
     },
     Equipment = {
         HeadwearBodygroup = 4,
@@ -38,7 +39,7 @@ return {
         Cooldown = 0.4
     },
     Turning = {
-        StartAngle = 45, -- Half the smallest turn (90); avoids alternating overshoots.
+        StartAngle = 70, -- Smaller corrections use locomotion instead of a 90-degree clip.
         StationarySpeed = 10,
         RetargetAngle = 45, -- Stop an old turn when the target changes direction.
         Cooldown = 0.35
@@ -100,6 +101,14 @@ return {
         DirectBudgetMS = 0.5,
         DirectAreasPerCheck = 32,
         DirectEdgesPerCheck = 96
+    },
+    Obstacles = {
+        Interval = 0.25, ChecksPerTick = 3, BudgetMS = 0.6,
+        ProbeDistance = 120, Clearance = 8, MaxDetour = 320,
+        RouteLifetime = 3, RetryDelay = 0.75,
+        MantleEnabled = true, MantleMaxHeight = 128, MantleMinHeight = 32,
+        MantleReach = 120, MantleCooldown = 2,
+        Mantle = {"undead_grunt_mantle_coast_2m_01", "undead_grunt_mantle_coast_2m_01_part2"}
     },
     Performance = {
         NearDistance = 900,

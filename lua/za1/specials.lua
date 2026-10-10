@@ -329,6 +329,7 @@ function S.Breakup(z, info)
         end
     end
     ZA1.Debris.Breakup(pieces, z:GetPos(), z:GetModelScale())
+    if z.ZASpecial=="suicide" then ZA1.Feedback.FullGib(z) end
     if z.ZAHeartPopped then
         local data = EffectData(); data:SetOrigin(info:GetDamagePosition()); data:SetScale(0.5)
         util.Effect("cball_explode", data, true, true)
@@ -347,8 +348,7 @@ local function Explosion(z, info)
     local attacker, inflictor = info:GetAttacker(), info:GetInflictor()
     attacker = IsValid(attacker) and attacker or z
     inflictor = IsValid(inflictor) and inflictor or z
-    local data = EffectData(); data:SetOrigin(pos); data:SetScale(1)
-    util.Effect("Explosion", data, true, true); S.Sound(z, "explosion", 90)
+    ZA1.Feedback.Explosion(pos)
     local settings = z.ZASpecialSettings
     if ZA1.Doors then ZA1.Doors.Blast(z, pos, settings.BlastRadius * z:GetModelScale(), settings.BlastDamage) end
     util.BlastDamage(inflictor, attacker, pos, settings.BlastRadius * z:GetModelScale(), settings.BlastDamage)

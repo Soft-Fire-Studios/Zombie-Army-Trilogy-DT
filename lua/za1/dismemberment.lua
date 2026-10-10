@@ -1,7 +1,7 @@
 if SERVER then AddCSLuaFile() end
 local D={};ZA1.Dismemberment=D
 local A=include("za1/dismemberment_assets.lua")
-local waistTorso, woundedTorso = 1, 2
+local waistTorso = 1
 local function Gone(z,group) return z:GetBodygroup(group)>0 end
 function D.IsWaist(z) return not z.ZASpecial and z:GetBodygroup(0)==waistTorso end
 function D.Mask(z)
@@ -22,6 +22,9 @@ function D.Update(z,force)
     if z.ZASpecial then return end
     if not force and CurTime()<(z.ZANextSeverCheck or 0) then return end
     z.ZANextSeverCheck=CurTime()+1
+    -- Torso 2 is another cut upper-body mesh, not a flesh-wound variant.
+    -- Repair actors restored from older builds without hiding attached legs.
+    if z:GetBodygroup(0)==2 then z:SetBodygroup(0,0) end
     local mask=D.Mask(z)
     if mask==z.ZASeverMask then return end
     z.ZASeverMask=mask
@@ -52,7 +55,7 @@ function D.Update(z,force)
     z:SetCollisionBounds(Vector(-z.Width,-z.Width,0),Vector(z.Width,z.Width,z.Height))
     z.ZANavProfile=ZA1.Navigation.Profile(z)
     ZA1.Navigation.Cancel(z)
-    if not z.ZAActing and z:Alive() then z:ResetAnimState() end
+    if not z.ZAActing and not z.ZADowned and z:Alive() then z:ResetAnimState() end
 end
 local function Send(z,piece,info)
     local emitter=z.ZADowned and IsValid(z.ZADowned.rag) and z.ZADowned.rag or z
@@ -75,8 +78,13 @@ function D.Sever(z,group,info)
     if group==HITGROUP_RIGHTARM then ZA1.Equipment.Drop(z,"weapon",info) end
     Send(z,part,info);z:SetBodygroup(part.Group,1)
     for _,g in ipairs(part.ArmorGroups or {}) do z:SetBodygroup(g,0) end
+    if (group==HITGROUP_LEFTLEG or group==HITGROUP_RIGHTLEG) and not z.ZACrawling and z:Alive()
+        and info and info:GetDamage()<z:Health() and ZA1.Recovery then
+        ZA1.Recovery.Request(z,info,false,true)
+    end
     D.Update(z,true);ZA1.Equipment.Refresh(z)
     SyncDowned(z)
+    if info and info:IsExplosionDamage() then ZA1.Feedback.FullGib(z) end
     return true
 end
 function D.Waist(z,info)
@@ -100,9 +108,6 @@ function D.Damage(z,info,tr)
         local damage=z.ZALimbDamage or {};z.ZALimbDamage=damage
         damage[group]=(damage[group] or 0)+info:GetDamage()
         if damage[group]>=ZA1.Config.Sever.LimbDamage then D.Sever(z,group,info) end
-    elseif group==HITGROUP_STOMACH and info:GetDamage()>=ZA1.Config.Sever.AbdomenDamage and z:GetBodygroup(0)==0 then
-        z:SetBodygroup(0,woundedTorso)
-        SyncDowned(z)
     end
 end
 function D.Ragdoll(z,rag)
@@ -114,13 +119,18 @@ function D.Ragdoll(z,rag)
             for _,name in ipairs(part.PhysicsBones) do
                 local bone=rag:LookupBone(name);local id=bone and rag:TranslateBoneToPhysBone(bone)
                 local object=id and id>=0 and rag:GetPhysicsObjectNum(id)
-                if IsValid(object) then object:EnableCollisions(false) end
+                if IsValid(object) then
+                    object:EnableCollisions(true)
+                    -- Hidden constrained joints must still collide with the
+                    -- world, but need not collide with their own ragdoll.
+                    if rag:TranslatePhysBoneToBone(id)==bone then object:AddGameFlag(FVPHYSICS_NO_SELF_COLLISIONS) end
+                end
             end
         end
     end
     if not rag.ZAHalf and z:GetBodygroup(0)==waistTorso then
         local bone=rag:LookupBone("Bip01 Pelvis");local id=bone and rag:TranslateBoneToPhysBone(bone)
         local object=id and id>=0 and rag:GetPhysicsObjectNum(id)
-        if IsValid(object) then object:EnableCollisions(false) end
+        if IsValid(object) then object:EnableCollisions(true) end
     end
 end

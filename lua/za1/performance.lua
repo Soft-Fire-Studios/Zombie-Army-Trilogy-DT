@@ -4,7 +4,7 @@ local F = {}
 ZA1.Performance = F
 local M, N, G, P = ZA1.Manager, ZA1.Navigation, ZA1.Crowd, ZA1.Population
 local Detail = include("za1/performance_detail.lua")
-local Modules = {awareness = M, navigation = N, crowd = G, population = P}
+local Modules = {awareness = M, navigation = N, crowd = G, population = P, obstacles = ZA1.Obstacles}
 local function Count(t) local n = 0; for _ in pairs(t) do n = n + 1 end; return n end
 local function Authorized(ply) return not IsValid(ply) or ply:IsAdmin() end
 local function Output(ply, text)
@@ -34,7 +34,8 @@ local function Queues()
     for z, pending in pairs(N.Pending) do
         if M.Active(z) then oldest = math.max(oldest, CurTime() - pending.queued) end
     end
-    return {path = Count(N.Pending), hearing = Count(M.Hearing), crowd = Count(G.Pending), oldestPathMS = oldest * 1000}
+    return {path = Count(N.Pending), hearing = Count(M.Hearing), crowd = Count(G.Pending),
+        obstacles = ZA1.Obstacles and Count(ZA1.Obstacles.Pending) or 0, oldestPathMS = oldest * 1000}
 end
 function F.Snapshot(queues, counters)
     queues = queues or Queues()
@@ -295,8 +296,9 @@ function F.Start(ply, seconds, thresholdMS)
     end
     F.Capture = capture
     for name, label in pairs({["ZA1/SharedTick"] = "awareness", ["ZA1/Navigation"] = "navigation", ["ZA1/Crowd"] = "crowd",
-        ["ZA1/SpawnCandidates"] = "population"}) do
+        ["ZA1/SpawnCandidates"] = "population", ["ZA1/Obstacles"] = "obstacles"}) do
         local original = hook.GetTable().Think[name]
+        if type(original) == "function" then
         capture.hooks[name], capture.samples[label] = original, {}
         local wrapper = function(...)
             local frame, start = Frame(capture), SysTime()
@@ -308,6 +310,7 @@ function F.Start(ply, seconds, thresholdMS)
         end
         capture.hookWrappers[name] = wrapper
         hook.Add("Think", name, wrapper)
+        end
     end
     capture.samples.population = {}
     capture.populationWrapper = function(...)

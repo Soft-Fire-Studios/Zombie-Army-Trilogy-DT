@@ -34,6 +34,7 @@ AddCSLuaFile("za1/doors.lua")
 if CLIENT then include("za1/doors.lua") end
 include("za1/equipment.lua")
 include("za1/dismemberment.lua")
+include("za1/feedback.lua")
 include("za1/gore.lua")
 include("za1/halves.lua")
 include("za1/look.lua")
@@ -49,6 +50,9 @@ if SERVER then
     include("za1/crowd.lua")
     include("za1/motion.lua")
     include("za1/population.lua")
+    include("za1/spawn_zones.lua")
+    include("za1/obstacles.lua")
+    include("za1/corpse_charges.lua")
     include("za1/skeleton_armor.lua")
     include("za1/heavy_armor.lua")
     include("za1/specials.lua")
@@ -61,6 +65,8 @@ else
         za1_director_radius="3200", za1_recycle_delay="10", za1_dormancy="1",
         za1_director_spawn_min_radius=tostring(ZA1.Config.Population.SpawnMinDistance),
         za1_director_visible_commons=ZA1.Config.Population.VisibleCommonSpawns and "1" or "0",
+        za1_director_spawn_mode="0",za1_resurrection="1",za1_resurrection_chance=tostring(ZA1.Config.Recovery.ResurrectionChance*100),
+        za1_mantle="1",za1_mantle_height=tostring(ZA1.Config.Obstacles.MantleMaxHeight),
         za1_wander="1", za1_alert_range="600", za1_event_sound_distance="1400",
         za1_ragdoll_lifetime="45", za1_ragdoll_cap="24", za1_crowd="1",
         za1_shared_routes="1", za1_path_budget="2", za1_path_burst="8",
@@ -109,6 +115,13 @@ if CLIENT then
             slider("Minimum spawn radius", "za1_director_spawn_min_radius", 128, 8192)
             slider("Maximum spawn / player radius", "za1_director_radius", 960, 8192)
             checkbox("Common zombies can emerge in view", "za1_director_visible_commons")
+            local source=vgui.Create("DComboBox",panel)
+            source:SetValue("Spawn source");source:SetEnabled(LocalPlayer():IsAdmin())
+            for id,label in ipairs({"Random navmesh", "Prefer zones (random fallback)", "Zones and random", "Zones only"}) do
+                source:AddChoice(label,id-1,GetConVar("za1_director_spawn_mode"):GetInt()==id-1)
+            end
+            source.OnSelect=function(_,_,_,value) setting("za1_director_spawn_mode",value) end;panel:AddItem(source)
+            panel:Help("Use the Spawn Zones tool to place, disable, save and load zones for this map. All sources respect player radii, navmesh and clear space.")
             panel:Help("Spawns stay outside the minimum distance from every living player and inside the maximum radius of a living player. Specials emerge out of sight. The maximum radius also controls distant recycling.")
             checkbox("Recycle distant unseen zombies", "za1_dormancy")
             slider("Unseen retirement delay (seconds)", "za1_recycle_delay", 3, 60)
@@ -119,6 +132,10 @@ if CLIENT then
             slider("Armored Heavy limit", "za1_heavy_limit", 0, 6)
             panel:Help("Zombie settings (admin only)")
             checkbox("Zombies wander", "za1_wander")
+            checkbox("Allow resurrection", "za1_resurrection")
+            slider("Resurrection chance (%)", "za1_resurrection_chance", 0, 100)
+            checkbox("Allow mantling", "za1_mantle")
+            slider("Maximum mantle height", "za1_mantle_height", 32, 160)
             slider("Nearby alert distance", "za1_alert_range", 128, 1500)
             slider("Animation sound distance (0 = unlimited)", "za1_event_sound_distance", 0, 4096)
             slider("Ragdoll lifetime (seconds)", "za1_ragdoll_lifetime", 10, 180)
@@ -132,6 +149,8 @@ if CLIENT then
             panel:CheckBox("Dynamic music", "za1_music")
             panel:CheckBox("Show horde density bar", "za1_horde_hud")
             panel:CheckBox("Head gibs and dropped equipment", "za1_debris")
+            panel:CheckBox("Gun and explosion lights", "za1_effect_lights")
+            panel:NumSlider("Particle and light distance", "za1_effect_distance", 256, 8192, 0)
             panel:NumSlider("Debris limit", "za1_debris_cap", 0, 96, 0)
             panel:NumSlider("Dropped equipment lifetime", "za1_debris_lifetime", 2, 60, 0)
             panel:NumSlider("Music volume", "za1_music_volume", 0, 1, 2)

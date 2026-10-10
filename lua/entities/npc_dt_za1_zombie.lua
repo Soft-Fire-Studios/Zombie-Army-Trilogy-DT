@@ -167,12 +167,13 @@ if SERVER then
         if self.ZAAttackClaim then self.ZAAttackClaim.expires = finish + C.Crowd.SlotLifetime end
         self.loco:SetVelocity(Vector(0, 0, self:GetVelocity().z))
         while self:GetSequence() == id and self:GetCycle() < 1 and CurTime() < finish and self:Alive() do
+            if self.ZADowned and not self.ZADowned.gettingUp then break end
             -- Navigation inertia must not add travel to the animation's root.
             self.loco:SetVelocity(Vector(0, 0, self:GetVelocity().z))
             if callback and callback() == false then break end
             if coroutine.yield(flags) then break end
         end
-        if self:Alive() and self:GetSequence() == id and self.__DT_PlaySeq_PreviousCycle < self:GetCycle() then
+        if self:Alive() and (not self.ZADowned or self.ZADowned.gettingUp) and self:GetSequence() == id and self.__DT_PlaySeq_PreviousCycle < self:GetCycle() then
             self.loco:SetVelocity(Vector(0, 0, self:GetVelocity().z))
             coroutine.yield(flags)
         end
@@ -180,7 +181,7 @@ if SERVER then
         self.ZAActing = false
         N.PauseProgress(self)
         M.Wake(self)
-        if self:Alive() and self:GetSequence() == id then self:ResetAnimState() end
+        if self:Alive() and (not self.ZADowned or self.ZADowned.gettingUp) and self:GetSequence() == id then self:ResetAnimState() end
     end
     function ENT:ZACanMelee(target, range, ignoreFacing)
         if not IsValid(target) or target.ZA1Zombie or not self:IsHatedEntity(target) then return false end
@@ -537,6 +538,7 @@ if SERVER then
             self:ZAPlayOnce(sequence)
             return
         end
+        if ZA1.Obstacles and ZA1.Obstacles.TryMantle(self) then return end
         if ZA1.Doors and ZA1.Doors.Try(self) then N.Follow(self); return end
         local enemy = self:GetEnemy()
         if self.ZADecisionEnemy ~= enemy then self.ZADecisionEnemy = enemy; M.Wake(self) end
@@ -564,6 +566,10 @@ if SERVER then
         self.ZAInvestigation = nil
         self:ZAWander()
     end
-    function ENT:OnError(err) ZA1.Ranged.Stop(self); ErrorNoHaltWithStack(err); return true end
+    function ENT:OnError(err)
+        ZA1.Ranged.Stop(self)
+        if ZA1.Obstacles then ZA1.Obstacles.Clear(self) end
+        ErrorNoHaltWithStack(err);return true
+    end
 end
 DT_Base.AddNextBot(ENT)

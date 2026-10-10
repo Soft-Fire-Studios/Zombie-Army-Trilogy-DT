@@ -46,9 +46,8 @@ function R.Fire(z)
     if gun.Single then z:EmitSound(gun.Single[math.random(#gun.Single)],80,100,C.Volume,CHAN_WEAPON) end
     local attachment=z:LookupAttachment("za1_"..gun.Name.."_muzzle")
     local muzzle=attachment and attachment>0 and z:GetAttachment(attachment)
-    local data=EffectData();data:SetEntity(z);data:SetAttachment(attachment or id)
-    data:SetOrigin(muzzle and muzzle.Pos or socket.Pos);data:SetNormal(direction);data:SetScale(1)
-    util.Effect("MuzzleFlash",data,true,true)
+    ZA1.Feedback.Muzzle(z,muzzle and muzzle.Pos or socket.Pos,muzzle and muzzle.Ang or socket.Ang,
+        muzzle and attachment or id,gun.Name)
     if z.ZAGunShots>=action.MaxShots then z.ZAGunSoundUntil=CurTime()+C.FireInterval end
 end
 function R.Event(z,event,options)

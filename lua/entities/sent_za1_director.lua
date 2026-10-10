@@ -105,6 +105,24 @@ function ENT:SpawnZombie(players, deadline)
     P.Own(self, z); M.Investigate(z, target:GetPos(), 20)
     return true
 end
+function ENT:ZAUpdatePhase(count, target, weakest, pressure)
+    local elapsed=self.ZAElapsed
+    local restTarget=math.min(target, math.Clamp(math.ceil(target*C.RestFraction), C.RestMinimum, C.RestMaximum))
+    local rested=self.ZAPhase=="rest" and elapsed-(self.ZAPhaseStarted or 0)>=C.RestEarlyExit and count<=restTarget
+    if self.ZAPhase=="rest" then
+        if elapsed>=self.ZAPhaseEnd or rested then
+            self.ZAPhase,self.ZAPhaseStarted,self.ZAPhaseEnd="buildup",elapsed,elapsed+C.BuildupDuration
+            self.ZAReliefUntil=elapsed+C.ReliefCooldown
+        end
+    elseif elapsed>=(self.ZAReliefUntil or 0) and (pressure>0.85 or weakest<0.25 and pressure>0.25)
+        or self.ZAPhase=="peak" and elapsed>=self.ZAPhaseEnd then
+        self.ZAPhase,self.ZAPhaseStarted,self.ZAPhaseEnd="rest",elapsed,elapsed+math.Rand(C.RestMinDuration,C.RestMaxDuration)
+    elseif elapsed>=self.ZAPhaseEnd then
+        self.ZAPhase,self.ZAPhaseStarted,self.ZAPhaseEnd="peak",elapsed,elapsed+math.Rand(C.PeakMinDuration,C.PeakMaxDuration)
+    end
+    self:SetHordePhase(self.ZAPhase=="rest" and 3 or self.ZAPhase=="peak" and 2 or 1)
+    return self.ZAPhase=="rest" and restTarget or target
+end
 function ENT:Think()
     local now, limit = CurTime(), M.PopulationLimit()
     local running = M.DirectorEnabled:GetBool()
@@ -125,7 +143,8 @@ function ENT:Think()
     self.ZAElapsed = (self.ZAElapsed or 0) + elapsed
     local targetCount = math.min(limit, math.floor(M.InitialDensity:GetInt() + self.ZAElapsed * M.DensityPerMinute:GetInt() / 60 + 4 * (#players - 1)))
     self:SetDensityTarget(targetCount)
-    P.Tick(self, players)
+    local spawnTarget=self:ZAUpdatePhase(M.Count(),targetCount,weakest,self:GetIntensity())
+    P.Tick(self, players, spawnTarget)
     local count = M.Count(); self:SetHordeSize(count)
     self.ZAPlayerPressure = math.max(0, self.ZAPlayerPressure - elapsed * 0.02)
     local pressure = math.Clamp(self.ZAPlayerPressure * 0.6 + count / limit * 0.4, 0, 1)
@@ -133,16 +152,8 @@ function ENT:Think()
     if now >= self.ZANextDecay and self:GetThreatLevel() > 1 then
         self:SetThreatLevel(self:GetThreatLevel() - 1); self.ZANextDecay = now + 120
     end
-    if self.ZAPhase ~= "rest" and (weakest < 0.25 or pressure > 0.85 or self.ZAPhase == "peak" and self.ZAElapsed >= self.ZAPhaseEnd) then
-        self.ZAPhase, self.ZAPhaseEnd = "rest", self.ZAElapsed + math.Rand(C.RestMinDuration, C.RestMaxDuration)
-    elseif self.ZAElapsed >= self.ZAPhaseEnd then
-        self.ZAPhase = self.ZAPhase == "rest" and "buildup" or "peak"
-        self.ZAPhaseEnd = self.ZAElapsed + (self.ZAPhase == "buildup" and C.BuildupDuration or math.Rand(C.PeakMinDuration, C.PeakMaxDuration))
-    end
-    self:SetHordePhase(self.ZAPhase == "rest" and 3 or self.ZAPhase == "peak" and 2 or 1)
     if now < self.ZANextSpawn then return true end
-    local spawnTarget = self.ZAPhase == "rest" and math.min(targetCount, C.RestMinimum) or targetCount
-    local group = self.ZAPhase == "peak" and C.PeakGroup or C.BuildupGroup
+    local group = self.ZAPhase == "rest" and 1 or self.ZAPhase == "peak" and C.PeakGroup or C.BuildupGroup
     local deadline = SysTime() + ZA1.Config.Population.WorkBudgetMS / 1000
     local spawned = 0
     for i = 1, math.min(group, spawnTarget - count) do

@@ -19,6 +19,11 @@ M.DensityPerMinute = CreateConVar("za1_director_density_per_minute", tostring(ZA
 M.Radius = CreateConVar("za1_director_radius", tostring(ZA1.Config.Population.SpawnMaxDistance), flags, "Director radius around each living player.", 960, 8192)
 M.SpawnMinRadius = CreateConVar("za1_director_spawn_min_radius", tostring(ZA1.Config.Population.SpawnMinDistance), flags, "Minimum spawn distance from every living player; kept below the maximum radius.", 128, 8192)
 M.VisibleCommons = CreateConVar("za1_director_visible_commons", ZA1.Config.Population.VisibleCommonSpawns and "1" or "0", flags, "Allow common zombies to emerge in view; specials still spawn unseen.", 0, 1)
+M.SpawnMode = CreateConVar("za1_director_spawn_mode", "0", flags, "Spawn source: 0 random navmesh, 1 prefer zones with fallback, 2 both, 3 zones only.", 0, 3)
+M.ResurrectionEnabled = CreateConVar("za1_resurrection", "1", flags, "Allow common zombie resurrection; destroyed heads cannot resurrect.", 0, 1)
+M.ResurrectionChance = CreateConVar("za1_resurrection_chance", tostring(ZA1.Config.Recovery.ResurrectionChance*100), flags, "Common resurrection chance in percent, at most once per zombie.", 0, 100)
+M.MantleEnabled = CreateConVar("za1_mantle", "1", flags, "Allow standing zombies to mantle supported obstacles.", 0, 1)
+M.MantleHeight = CreateConVar("za1_mantle_height", tostring(ZA1.Config.Obstacles.MantleMaxHeight), flags, "Maximum mantle height in Source units.", 32, 160)
 M.RetireDelay = CreateConVar("za1_recycle_delay", tostring(ZA1.Config.Population.SleepDelay), flags, "Seconds outside player radii and unseen before recycling.", 3, 60)
 M.EventDistance = CreateConVar("za1_event_sound_distance", tostring(ZA1.Config.Audio.EventDistance), flags, "Maximum player distance for animation sounds; 0 disables culling.", 0, 4096)
 M.DirectorEnabled = CreateConVar("za1_director_running", "1", flags, "Allow the Zombie Army director to populate the map.", 0, 1)
@@ -39,6 +44,7 @@ util.AddNetworkString("ZA1/Music")
 util.AddNetworkString("ZA1/Setting")
 local settings = {za1_wander={0,1},za1_alert_range={128,1500},za1_population_cap={8,100},za1_director_initial_density={0,100},za1_director_density_per_minute={0,100},za1_director_running={0,1},za1_director_radius={960,8192},za1_recycle_delay={3,60},za1_event_sound_distance={0,4096},za1_ragdoll_lifetime={10,180},za1_ragdoll_cap={0,64},
     za1_director_spawn_min_radius={128,8192},za1_director_visible_commons={0,1},
+    za1_director_spawn_mode={0,3},za1_resurrection={0,1},za1_resurrection_chance={0,100},za1_mantle={0,1},za1_mantle_height={32,160},
     za1_crowd={0,1},za1_shared_routes={0,1},za1_dormancy={0,1},za1_path_budget={1,8},za1_path_burst={1,16},
     za1_specials={0,1},za1_special_chance={0,50},za1_skeleton_limit={0,12},za1_suicide_limit={0,6},za1_heavy_limit={0,6}}
 net.Receive("ZA1/Setting", function(_, ply)

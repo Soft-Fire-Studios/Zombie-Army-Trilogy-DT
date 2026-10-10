@@ -31,13 +31,20 @@ function R.Clear(z,keepCorpse)
         else Finish(state.rag) end
     end
 end
-function R.Request(z,info,resurrection)
-    if z.ZADowned or z.ZAHeadDestroyed or z:IsPossessed() or z.ZAActing or z.__DT_PhysgunPickup
-        or R.active>=C.MaxActiveRagdolls then return false end
+function R.Request(z,info,resurrection,limbFall)
+    if z.ZADowned or z.ZAHeadDestroyed or z:IsPossessed() and not limbFall or z.ZAActing and not limbFall or z.__DT_PhysgunPickup
+        or R.active>=C.MaxActiveRagdolls and not limbFall then return false end
     local state={started=CurTime(),resurrection=resurrection,force=Vector(info:GetDamageForce()),velocity=Vector(z:GetVelocity()),
-        wait=resurrection and C.ResurrectionDelay or math.Rand(C.MinDownTime,C.MaxDownTime),
+        wait=resurrection and C.ResurrectionDelay or math.Rand(C.MinDownTime,C.MaxDownTime),limbFall=limbFall,
         health=resurrection and math.max(1,math.Round(z:GetMaxHealth()*C.ResurrectionHealth)) or nil}
     z.ZADowned=state;R.active=R.active+1
+    if limbFall then
+        state.pose={}
+        for bone=0,z:GetBoneCount()-1 do
+            local matrix=z:GetBoneMatrix(bone)
+            if matrix then state.pose[z:GetBoneName(bone)]={pos=matrix:GetTranslation(),angles=matrix:GetAngles()} end
+        end
+    end
     if z.ZABreathInSound then z:StopSound(z.ZABreathInSound) end
     if z.ZABreathOutSound then z:StopSound(z.ZABreathOutSound) end
     if resurrection then z.ZAResurrections=(z.ZAResurrections or 0)+1 end
@@ -50,7 +57,9 @@ end
 function R.Damage(z,info)
     if z.ZADowned or z.ZAHeadDestroyed then return end
     local fatal=info:GetDamage()>=z:Health()
-    if fatal and (z.ZAResurrections or 0)<C.MaxResurrections and math.Rand(0,1)<C.ResurrectionChance then
+    local manager=ZA1.Manager
+    local chance=manager.ResurrectionChance:GetFloat()/100
+    if fatal and manager.ResurrectionEnabled:GetBool() and (z.ZAResurrections or 0)<C.MaxResurrections and math.Rand(0,1)<chance then
         if R.Request(z,info,true) then info:SetDamage(math.max(0,z:Health()-1)) end
     elseif not fatal and info:IsExplosionDamage() and info:GetDamage()>=C.MinExplosionDamage then
         R.Request(z,info,false)
@@ -81,8 +90,10 @@ local function SpawnRagdoll(z,state)
     for _,entry in ipairs(objects) do
         local bone=rag:TranslatePhysBoneToBone(entry.index)
         if upper and bone>=0 then bone=z:LookupBone(rag:GetBoneName(bone)) end
-        local matrix=bone and bone>=0 and z:GetBoneMatrix(bone)
-        if matrix then entry.object:SetPos(matrix:GetTranslation());entry.object:SetAngles(matrix:GetAngles()) end
+        local saved=state.pose and bone and bone>=0 and state.pose[z:GetBoneName(bone)]
+        local matrix=not saved and bone and bone>=0 and z:GetBoneMatrix(bone)
+        if saved then entry.object:SetPos(saved.pos);entry.object:SetAngles(saved.angles)
+        elseif matrix then entry.object:SetPos(matrix:GetTranslation());entry.object:SetAngles(matrix:GetAngles()) end
     end
     -- Share the impulse by mass rather than launching a light hand/head while
     -- the rest of its constrained body starts at rest.

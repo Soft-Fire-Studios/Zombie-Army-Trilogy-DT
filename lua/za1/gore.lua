@@ -46,6 +46,7 @@ function F.HeadHit(z,info,fatal)
     if fatal then
         Impact(emitter,A.bloodSplat,C.SplatVolume,75)
         local pos,ang=F.Position(emitter)
+        ZA1.Feedback.Headshot(pos,ang)
         for i=1,C.Bursts do ParticleEffect("blood_impact_red_01",pos,ang) end
         if emitter~=z then
             local layout=z.ZAHeadLayout
@@ -61,11 +62,20 @@ function F.Ragdoll(z,rag)
     rag.ZA1Corpse=true;rag.ZAHeadDestroyed=z.ZAHeadDestroyed
     if not z.ZAHeadDestroyed or rag.ZAHeadSpurt then return end
     rag.ZAHeadSpurt=true
-    if rag.TranslateBoneToPhysBone then
-        local bone=rag:LookupBone("Bip01 Head")
-        local phys=bone and rag:TranslateBoneToPhysBone(bone)
-        local object=phys and phys>=0 and rag:GetPhysicsObjectNum(phys)
-        if IsValid(object) then object:EnableCollisions(false) end
+    -- A hidden head remains part of the constrained ragdoll. Turning off its
+    -- world collision lets it fall through the floor and pull attached limbs
+    -- below the surface. Hide the mesh; keep the solver's collision intact.
+    if z.ZASpecial=="heavy" then
+        for index=0,rag:GetPhysicsObjectCount()-1 do
+            local object=rag:GetPhysicsObjectNum(index)
+            if IsValid(object) then object:EnableCollisions(true) end
+        end
+    end
+    local bone=rag:LookupBone("Bip01 Head")
+    local phys=bone and rag:TranslateBoneToPhysBone(bone)
+    if phys and phys>=0 and rag:TranslatePhysBoneToBone(phys)==bone then
+        local object=rag:GetPhysicsObjectNum(phys)
+        if IsValid(object) then object:AddGameFlag(FVPHYSICS_NO_SELF_COLLISIONS) end
     end
     local _,_,socket=F.Position(rag)
     if socket then ParticleEffectAttach("za1_headshot_spurt",PATTACH_POINT_FOLLOW,rag,socket) end
