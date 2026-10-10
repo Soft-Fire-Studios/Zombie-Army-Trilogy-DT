@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/germansoldiers_acessories_col"
+    "$bumpmap" "models/zombiearmytrilogy/textures/germansoldier_acessories_norms"
+    "$phong" "1"
+    "$phongexponent" "18.4972838"
+    "$phongboost" "2.31093763"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/lod0_3/germansoldiers_acessories_col"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/lod0_3/germansoldiers_acessories_col"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

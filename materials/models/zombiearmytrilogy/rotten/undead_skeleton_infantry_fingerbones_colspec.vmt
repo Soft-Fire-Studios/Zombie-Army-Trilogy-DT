@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/rotten/undead_skeleton_infantry_fingerbones_colspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/fingerbones_norms"
+    "$phong" "1"
+    "$phongexponent" "4.70023194"
+    "$phongboost" "0.587528992"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/rotten/undead_skeleton_infantry_fingerbones_colspec"
+    "$model" "1"
+}

@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/sg_planks_dark_col"
+    "$bumpmap" "models/zombiearmytrilogy/textures/sg_planks_dark_norm"
+    "$phong" "1"
+    "$phongexponent" "0.988345744"
+    "$phongboost" "0.123543218"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/sg_planks_dark_col"
+    "$model" "1"
+}

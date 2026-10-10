@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/germansoldier_dirty_helmet_col"
+    "$bumpmap" "models/zombiearmytrilogy/textures/germansoldier_dirty_helmet_norms"
+    "$phong" "1"
+    "$phongexponent" "22.0099643"
+    "$phongboost" "2.74859215"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/germansoldier_dirty_helmet_col"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/germansoldier_dirty_helmet_col"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

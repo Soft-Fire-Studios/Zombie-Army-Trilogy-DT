@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/helmet_suicide_bandana_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/helmet_suicide_bandana_n"
+    "$phong" "1"
+    "$phongexponent" "8.28835413"
+    "$phongboost" "1.03506581"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/helmet_suicide_bandana_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/helmet_suicide_bandana_d"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

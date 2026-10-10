@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/genericmouth_bloody_alt_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/genericmouth_norms"
+    "$phong" "1"
+    "$phongexponent" "38.6983283"
+    "$phongboost" "4.83396949"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/genericmouth_bloody_alt_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/genericmouth_bloody_alt_d"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

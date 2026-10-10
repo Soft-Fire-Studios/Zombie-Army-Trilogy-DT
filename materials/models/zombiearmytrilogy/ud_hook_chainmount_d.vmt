@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/ud_hook_chainmount_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/ud_hook_chainmount_n"
+    "$phong" "1"
+    "$phongexponent" "11.6428457"
+    "$phongboost" "1.4540847"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/ud_hook_chainmount_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/ud_hook_chainmount_d"
+    "$phongalbedotint" "1"
+    "$envmap" "models/zombiearmytrilogy/cubemaps/exterior_cubemap"
+    "$envmaptint" "[0.399999976 0.399999976 0.399999976]"
+    "$envmapfresnel" "0"
+    "$normalmapalphaenvmapmask" "0"
+    "$model" "1"
+}

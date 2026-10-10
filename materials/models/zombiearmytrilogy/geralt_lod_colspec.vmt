@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/geralt_lod_colspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/geralt_lod_norms"
+    "$phong" "1"
+    "$phongexponent" "100.511525"
+    "$phongboost" "12.5539174"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/geralt_lod_colspec"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/geralt_lod_colspec"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

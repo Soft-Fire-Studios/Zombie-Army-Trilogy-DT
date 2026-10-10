@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/rotten_zombie_acessories_col"
+    "$bumpmap" "models/zombiearmytrilogy/textures/rotten_zombie_acessories_norms"
+    "$phong" "1"
+    "$phongexponent" "5.83730964"
+    "$phongboost" "0.729663705"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/rotten_zombie_acessories_col"
+    "$model" "1"
+}

@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/burnt_zombie_body_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/burnt_zombie_body_n"
+    "$phong" "1"
+    "$phongexponent" "32.749794"
+    "$phongboost" "4.09023101"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/burnt_zombie_body_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/burnt_zombie_body_d"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

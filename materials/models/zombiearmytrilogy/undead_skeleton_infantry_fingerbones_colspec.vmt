@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/undead_skeleton_infantry_fingerbones_colspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/skeleton_fingerbones/fingerbones_norms"
+    "$phong" "1"
+    "$phongexponent" "52.0837466"
+    "$phongboost" "6.50931097"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/undead_skeleton_infantry_fingerbones_colspec"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/undead_skeleton_infantry_fingerbones_colspec"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

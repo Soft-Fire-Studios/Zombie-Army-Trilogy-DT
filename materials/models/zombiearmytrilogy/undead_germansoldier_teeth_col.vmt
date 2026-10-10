@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/undead_germansoldier_teeth_col"
+    "$bumpmap" "models/zombiearmytrilogy/textures/undead_germansoldier_teeth_norms"
+    "$phong" "1"
+    "$phongexponent" "101.926332"
+    "$phongboost" "12.7363181"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/undead_germansoldier_teeth_col"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/undead_germansoldier_teeth_col"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

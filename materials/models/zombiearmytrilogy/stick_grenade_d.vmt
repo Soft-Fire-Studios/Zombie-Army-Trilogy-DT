@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/stick_grenade_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/stick_grenade_n"
+    "$phong" "1"
+    "$phongexponent" "5.66866436"
+    "$phongboost" "0.707998857"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/stick_grenade_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/stick_grenade_d"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

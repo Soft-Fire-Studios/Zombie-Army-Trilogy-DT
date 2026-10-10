@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/rotten_zombie_head_dismemberment_col"
+    "$bumpmap" "models/zombiearmytrilogy/textures/rotten_zombie_head_dismemberment_norms"
+    "$phong" "1"
+    "$phongexponent" "31.1600238"
+    "$phongboost" "3.89179188"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/rotten_zombie_head_dismemberment_col"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/rotten_zombie_head_dismemberment_col"
+    "$phongalbedotint" "1"
+    "$detail" "models/zombiearmytrilogy/emission/rotten_zombie_head_dismemberment_col"
+    "$detailscale" "1"
+    "$detailblendmode" "5"
+    "$detailblendfactor" "0.715013802"
+    "$model" "1"
+}

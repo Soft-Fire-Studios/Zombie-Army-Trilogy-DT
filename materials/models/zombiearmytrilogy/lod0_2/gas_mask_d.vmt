@@ -1,0 +1,17 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/lod0_2/gas_mask_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/lod0_2/gas_mask_n"
+    "$phong" "1"
+    "$phongexponent" "2.78872417"
+    "$phongboost" "0.348590522"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/lod0_2/gas_mask_d"
+    "$translucent" "1"
+    "$detail" "models/zombiearmytrilogy/emission/lod0_2/gas_mask_d"
+    "$detailscale" "1"
+    "$detailblendmode" "5"
+    "$detailblendfactor" "0.099999994"
+    "$model" "1"
+}

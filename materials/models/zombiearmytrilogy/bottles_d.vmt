@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/bottles_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/bottles_n"
+    "$phong" "1"
+    "$phongexponent" "175.878552"
+    "$phongboost" "21.9848189"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/bottles_d"
+    "$envmap" "models/zombiearmytrilogy/cubemaps/french_town_cubemap"
+    "$envmaptint" "[0.049999997 0.049999997 0.049999997]"
+    "$envmapfresnel" "0"
+    "$normalmapalphaenvmapmask" "0"
+    "$model" "1"
+}

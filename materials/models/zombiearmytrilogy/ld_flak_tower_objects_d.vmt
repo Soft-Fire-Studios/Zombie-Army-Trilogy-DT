@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/ld_flak_tower_objects_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/ld_flak_tower_objects_n"
+    "$phong" "1"
+    "$phongexponent" "27.3177892"
+    "$phongboost" "3.41354753"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/ld_flak_tower_objects_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/ld_flak_tower_objects_d"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

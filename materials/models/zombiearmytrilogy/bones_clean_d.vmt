@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/bones_clean_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/nza3_bloodybones_norms"
+    "$phong" "1"
+    "$phongexponent" "66.2717978"
+    "$phongboost" "8.27727398"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/bones_clean_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/bones_clean_d"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

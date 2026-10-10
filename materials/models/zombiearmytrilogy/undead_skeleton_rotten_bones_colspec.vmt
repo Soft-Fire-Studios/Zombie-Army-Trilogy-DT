@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/undead_skeleton_rotten_bones_colspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/undead_skeleton_rotten_bones_norms"
+    "$phong" "1"
+    "$phongexponent" "51.5775361"
+    "$phongboost" "6.44316619"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/undead_skeleton_rotten_bones_colspec"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/undead_skeleton_rotten_bones_colspec"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

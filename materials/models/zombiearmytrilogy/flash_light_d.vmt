@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/flash_light_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/flash_light_n"
+    "$phong" "1"
+    "$phongexponent" "14.74485"
+    "$phongboost" "1.84238133"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/flash_light_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/flash_light_d"
+    "$phongalbedotint" "1"
+    "$alphatest" "1"
+    "$alphatestreference" "0.05"
+    "$model" "1"
+}

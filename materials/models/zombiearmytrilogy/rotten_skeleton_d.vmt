@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/rotten_skeleton_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/rotten_skeleton_n"
+    "$phong" "1"
+    "$phongexponent" "23.3681181"
+    "$phongboost" "2.91907392"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/rotten_skeleton_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/rotten_skeleton_d"
+    "$phongalbedotint" "1"
+    "$alphatest" "1"
+    "$alphatestreference" "0.05"
+    "$model" "1"
+}

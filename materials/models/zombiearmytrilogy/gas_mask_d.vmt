@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/gas_mask_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/gas_mask_n"
+    "$phong" "1"
+    "$phongexponent" "10.4615009"
+    "$phongboost" "1.30659497"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/gas_mask_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/gas_mask_d"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

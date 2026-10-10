@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/helmet_germansoldier_swastika_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/helmet_germansoldier_swastika_n"
+    "$phong" "1"
+    "$phongexponent" "33.1759125"
+    "$phongboost" "4.14284214"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/helmet_germansoldier_swastika_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/helmet_germansoldier_swastika_d"
+    "$phongalbedotint" "1"
+    "$alphatest" "1"
+    "$alphatestreference" "0.05"
+    "$model" "1"
+}

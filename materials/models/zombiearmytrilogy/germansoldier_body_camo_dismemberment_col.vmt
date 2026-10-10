@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/germansoldier_body_camo_dismemberment_col"
+    "$bumpmap" "models/zombiearmytrilogy/textures/germansoldier_dismember_damage_n"
+    "$phong" "1"
+    "$phongexponent" "100.511525"
+    "$phongboost" "12.5539174"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/germansoldier_body_camo_dismemberment_col"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/germansoldier_body_camo_dismemberment_col"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

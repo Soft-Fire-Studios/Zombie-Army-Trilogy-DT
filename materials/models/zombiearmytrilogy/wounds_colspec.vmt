@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/wounds_colspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/wounds_norms"
+    "$phong" "1"
+    "$phongexponent" "70.9959563"
+    "$phongboost" "8.86954481"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/wounds_colspec"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/wounds_colspec"
+    "$phongalbedotint" "1"
+    "$alphatest" "1"
+    "$alphatestreference" "0.05"
+    "$model" "1"
+}

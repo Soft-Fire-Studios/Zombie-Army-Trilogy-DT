@@ -9,43 +9,69 @@ Asset coverage
   89 compiled models: 35 static props, 26 equipment,
   20 joint-local gib models, 4 partial ragdolls, 1 common soldier, 1 Skeleton, 1 Suicide Grunt and 1 Armored Heavy.
   25 empty object/controller profiles recorded, rather than compiled as invisible props.
-  109 readable VMT names; 184 VTFs.
+  109 readable VMT names; 362 VTFs.
   393 named audio files; 22 synchronized music arrangements
   across 15 theme choices from Episodes 1, 2 and 3.
-  Original filenames and texture folders are preserved. Native resource IDs remain
+  Original filenames use compact runtime folders. Native resource IDs remain
   only in the audit lookup tables. Converted channels have short descriptive suffixes.
 
 Zombie-only runtime package
-  Materials: 2.48 GiB -> 597.2 MiB.
-  Removed 2,823 unreferenced material/texture files and 1,357 unrelated models.
+  Materials: 2.06 GiB -> 760.4 MiB.
+  Removed 144 unreferenced material/texture files and 0 unrelated models.
   Compiled texture tables, all skins/bodygroups, DX80/DX90 LOD replacements, Lua and PCF materials determine retention.
   Zombie gear, breakoff armor, gibs, partial ragdolls, blood and pentagram effects remain.
-  Every retained model/material/texture/audio file is byte-identical; no quality reduction or recompression.
+  Cleanup leaves retained assets byte-identical; supported material refreshes are audited separately.
+  Cleanup does not resize or re-encode retained textures; the chosen material packaging is separate.
   All currently referenced named audio and layered director music are retained.
   Source models, textures, audio resources, conversion histories and original game archives remain intact.
   audit/zombie-asset-scope.json lists exact dependencies, removed names, sizes and verified rollback copies.
   prune_zombie_assets.py --apply repeats the cleanup after asset changes; --validate checks its dependency closure.
   The build pipeline performs this step last so broad exports do not regrow the runtime pack.
 
-Updated stock Source materials (viewer 1.14.0)
-  9 native materials and 2 compiled-slot aliases refreshed.
-  96 other model materials retain their existing bytes and shading.
+Updated stock Source materials (viewer 1.15.0)
+  94 native materials and 7 compiled-slot aliases refreshed.
+  6 other model materials retain their existing shading.
   The exact reviewed native program and same-archive response row must both resolve.
   Native BC5 normals reconstruct XYZ with the compiled Source green-channel correction.
-  Normal alpha uses native specular alpha; albedo alpha is not treated as opacity.
+  Authored detail normals add signed XY before Z reconstruction, using native UV scale and strength.
+  Normal alpha uses native specular alpha; authored tint is applied in native linear color.
+  A separate native opacity map controls cutouts; forward opacity freezes the declared view-LUT preset.
+  Native emission strength, RGB and optional alpha mask use Source additive detail mode 5.
+  Six native cube faces and every authored cube mip are converted to the Source reflection basis.
   Native sRGB flags drive color conversion; color mips use linear light and normal mips renormalize.
   Native response rows fit Phong exponent/boost, tint and a linear diffuse lightwarp.
   Source selects full-resolution DDS resources by the existing named/serialized bindings.
   This texture-quality adaptation does not establish native runtime streaming order.
   VMT names stay compatible with compiled models. New VTF basenames retain native names.
   New maps are separate from legacy textures, which unsupported materials still share.
-  Source Phong, ambient/prelight, colored lights and low-G backlighting remain approximations.
+  Source Phong, ambient/prelight, colored lights, view response and additive reflections remain approximations.
   Unsupported routes preserve normals, shininess and glow; no diffuse fallback is installed.
   The material-only pass leaves the two effect materials, models and runtime Lua unchanged.
   audit/material-reexport.json retains native records, input/output hashes, names and limitations.
-  validate_materials.py checks real DDS/VTF channels, response values and preserved file hashes.
+  validate_materials.py independently checks DDS/VTF channels, response values, emission and all cube faces/mips.
+  Shader-channel quantization uses float32 precision and exact mask-byte comparisons.
+  Viewer material regression suite: 49 tests pass for the 1.15.0 recipes and bindings.
+  85 native materials are newly supported relative to the previous pack.
   Reapply with python reexport_materials.py; validate with --validate.
   build_pipeline.py runs this pass after legacy material writers. In-game appearance needs testing.
+  validate_trilogy.py --materials-only checks dependency closure and exact unchanged model/runtime hashes;
+  geometry and animation validation are inherited for unchanged payloads; material-string edits are proved separately.
+
+Source texture packaging
+  100 color/cube maps use DXT1/DXT5; normals use BGR888 or BGRA8888 with specular alpha.
+  89 normal textures are lossless at their retained mip resolution.
+  Converted maps: 1770.6 MiB RGBA -> 756.7 MiB packaged.
+  Current zombie material folder: 760.4 MiB.
+  Maximum dimension: 2048; whole material folder budget: 1,000,000,000 bytes.
+  A 2048 cap is used unless the folder would exceed that budget, in which case the cap becomes 1024.
+  6 oversized maps select an existing filtered mip; aspect ratio and remaining mips are preserved.
+  All six cube faces, color-space flags and linear alpha roles are preserved.
+  No RGB/alpha normal swizzle or mip regeneration. Lightwarp and fitted tint values remain exact.
+  Full-precision native bakes stay outside the addon as independent shader-math references.
+  Packed maps are independently decoded at every mip/face, with color/alpha and normal-angle error checks.
+  Color DXT is lossy; normal channel storage is exact. Error checks are in audit/material-compression-prepared.json.
+  compress_materials.py applies the selected packaging, which reexport_materials.py retains on future runs.
+  The prior runtime texture files and material report have verified rollback copies.
 
 Native animation and collision data
   Common soldier: 123 authored actions and 788 events.

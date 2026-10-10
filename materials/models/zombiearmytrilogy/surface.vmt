@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/constants/surface/albedo"
+    "$bumpmap" "models/zombiearmytrilogy/textures/constants/surface/normal"
+    "$phong" "1"
+    "$phongexponent" "3.5450911"
+    "$phongboost" "0.443076329"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/surface"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/surface"
+    "$phongalbedotint" "1"
+    "$detail" "models/zombiearmytrilogy/emission/surface"
+    "$detailscale" "1"
+    "$detailblendmode" "5"
+    "$detailblendfactor" "1"
+    "$model" "1"
+}

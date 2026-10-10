@@ -1,0 +1,13 @@
+"VertexLitGeneric"
+{
+ "$basetexture" "models/zombiearmytrilogy/textures/legacy/spheremap1"
+ "$model" "1"
+ "$phong" "1"
+ "$phongexponent" "12"
+ "$phongboost" "0.35"
+ "$phongfresnelranges" "[0.2 0.4 1]"
+ "$bumpmap" "models/zombiearmytrilogy/textures/legacy/leather_phong"
+ "$selfillum" "1"
+ "$selfillummask" "models/zombiearmytrilogy/textures/legacy/skeleton_heartlung_glint_refmask_illum"
+ "$selfillumtint" "[1 0.13427 0.0039216]"
+}

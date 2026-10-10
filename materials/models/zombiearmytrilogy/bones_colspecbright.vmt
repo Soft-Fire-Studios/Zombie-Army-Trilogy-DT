@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/bones_colspecbright"
+    "$bumpmap" "models/zombiearmytrilogy/textures/bones_norms"
+    "$phong" "1"
+    "$phongexponent" "40.492584"
+    "$phongboost" "5.05787253"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/bones_colspecbright"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/bones_colspecbright"
+    "$phongalbedotint" "1"
+    "$detail" "models/zombiearmytrilogy/emission/bones_colspecbright"
+    "$detailscale" "1"
+    "$detailblendmode" "5"
+    "$detailblendfactor" "0.00896269362"
+    "$model" "1"
+}

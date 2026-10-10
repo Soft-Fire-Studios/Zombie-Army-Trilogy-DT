@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/bayonet_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/bayonet_n"
+    "$phong" "1"
+    "$phongexponent" "70.9959563"
+    "$phongboost" "8.86562018"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/bayonet_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/bayonet_d"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

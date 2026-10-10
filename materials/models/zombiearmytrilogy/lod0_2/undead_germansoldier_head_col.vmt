@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/undead_germansoldier_head_col"
+    "$bumpmap" "models/zombiearmytrilogy/textures/lod0_2/undead_germansoldier_head_norms"
+    "$phong" "1"
+    "$phongexponent" "47.0792604"
+    "$phongboost" "5.87940204"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/lod0_2/undead_germansoldier_head_col"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/lod0_2/undead_germansoldier_head_col"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/lancaster_wheel_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/lancaster_wheel_n"
+    "$phong" "1"
+    "$phongexponent" "3.6862125"
+    "$phongboost" "0.460776562"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/lancaster_wheel_d"
+    "$model" "1"
+}

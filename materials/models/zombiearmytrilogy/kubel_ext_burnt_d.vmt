@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/kubel_ext_burnt_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/kubel_ext_n"
+    "$phong" "1"
+    "$phongexponent" "28.4314249"
+    "$phongboost" "3.55207227"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/kubel_ext_burnt_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/kubel_ext_burnt_d"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

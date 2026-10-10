@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/nza3_bloodyheartlungs_colspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/heartlungs_norms"
+    "$phong" "1"
+    "$phongexponent" "22.3595424"
+    "$phongboost" "2.79301741"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/nza3_bloodyheartlungs_colspec"
+    "$phongexponenttexture" "models/zombiearmytrilogy/phongtints/nza3_bloodyheartlungs_colspec"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}
