@@ -3,10 +3,18 @@
 local O={Pending=setmetatable({},{__mode="k"}),Stats={checks=0,detours=0,mantles=0,blocked=0}}
 ZA1.Obstacles=O
 local C,M,N=ZA1.Config.Obstacles,ZA1.Manager,ZA1.Navigation
+function O.IsFixed(ent)
+    if not IsValid(ent) then return false end
+    if ent:IsWorld() then return true end
+    local phys=ent:GetPhysicsObject()
+    if IsValid(phys) then return not phys:IsMotionEnabled() end
+    return ent:GetMoveType()==MOVETYPE_NONE
+end
 local function Filter(z)
     if not z.ZAObstacleFilter then
         z.ZAObstacleFilter=function(other)
-            return IsValid(other) and other~=z and other~=z.ZAObstacleEnemy and not other.ZA1Zombie and not other.ZA1Corpse
+            return IsValid(other) and other~=z and other~=z.ZAObstacleEnemy and other~=z.ZAObstacleIgnore
+                and not other.ZA1Zombie and not other.ZA1Corpse and not IsValid(other.ZARecoveryOwner)
         end
     end
     z.ZAObstacleEnemy=z:GetEnemy()
@@ -29,6 +37,42 @@ local function NavFloor(z,pos)
     local area=N.Area(pos)
     return IsValid(area) and not area:IsBlocked() and not area:IsUnderwater() and area:Contains(pos)
         and math.abs(area:GetClosestPointOnArea(pos).z-pos.z)<=z.loco:GetStepHeight()+2
+end
+-- A closed door can block its entire nav area, including the floor on our
+-- side. Check only that short, grounded approach; never cross the door.
+function O.PrepareDoor(z)
+    z.ZADoorLocal=nil
+    local B=ZA1.Doors;local door=z.ZADoorTarget
+    if not B or not B.IsClosed(door) then return end
+    local start=z:GetPos();local goal=B.ApproachPoint(z,door)
+    local delta=goal-start;local distance=delta:Length2D()
+    if distance>ZA1.Config.Doors.ProbeDistance or not Clear(z,start,goal) then return end
+    local step=z.loco:GetStepHeight();local previous=start
+    local count=math.max(1,math.ceil(distance/32))
+    for i=1,count do
+        local sample=start+delta*(i/count)
+        local floor=Floor(z,sample,previous.z+step,previous.z-step-2)
+        if not floor or math.abs(floor.z-previous.z)>step then return end
+        if navmesh.IsLoaded() then
+            local area=N.Area(floor)
+            if not IsValid(area) or area:IsUnderwater() or not area:Contains(floor)
+                or math.abs(area:GetClosestPointOnArea(floor).z-floor.z)>step+2 then return end
+        end
+        previous=floor
+    end
+    z.ZADoorLocal={door=door,from=Vector(start),goal=previous,position=Vector(door:GetPos()),
+        angles=door:GetAngles(),expires=CurTime()+math.max(0.5,C.Interval*4)}
+end
+function O.DoorPoint(z)
+    local route=z.ZADoorLocal
+    if not route or CurTime()>=route.expires or route.door~=z.ZADoorTarget or not ZA1.Doors.IsClosed(route.door) then return end
+    local angles=route.door:GetAngles()
+    if route.door:GetPos():DistToSqr(route.position)>1 or math.abs(math.AngleDifference(angles.y,route.angles.y))>1
+        or math.abs(math.AngleDifference(angles.p,route.angles.p))>1 or math.abs(math.AngleDifference(angles.r,route.angles.r))>1 then return end
+    local pos=z:GetPos();local delta=route.goal-route.from
+    local fraction=math.Clamp((pos-route.from):Dot(delta)/math.max(delta:LengthSqr(),1),0,1)
+    if pos:DistToSqr(route.from+delta*fraction)>4^2 then return end
+    return route.goal
 end
 function O.Detour(z,obstacle,goal,side)
     local start=z:GetPos();local low,high=obstacle:WorldSpaceAABB()
@@ -57,32 +101,8 @@ function O.Detour(z,obstacle,goal,side)
     if not Clear(z,start,a) or not Clear(z,a,b) or not Clear(z,b,rejoin) then return end
     return {points={a,b,rejoin},index=1,entity=obstacle,entityPos=Vector(obstacle:GetPos()),goal=Vector(goal),expires=CurTime()+C.RouteLifetime}
 end
-function O.MantlePlan(z,tr,goal)
-    if not M.MantleEnabled:GetBool() or z.ZACrawling or z.ZASpecial=="heavy" or CurTime()<(z.ZANextMantle or 0) then return end
-    local sequence=z:LookupSequence(C.Mantle[1]);if sequence<0 then return end
-    local ok,motion=z:GetSequenceMovement(sequence,0,1)
-    if not ok or motion.z<1 then return end -- Only clips with extracted vertical motion.
-    local start=z:GetPos();local direction=goal-start;direction.z=0;direction:Normalize()
-    if direction:LengthSqr()==0 then return end
-    local maximum=M.MantleHeight:GetFloat()
-    local sample=tr.HitPos+direction*(z.Width*2+C.Clearance)
-    local top,support=Floor(z,sample,start.z+maximum+4,start.z+z.loco:GetStepHeight()+2)
-    if not top then return end
-    local height=top.z-start.z
-    if height<C.MantleMinHeight or height>maximum then return end
-    local landing=top+direction*(z.Width+C.Clearance)
-    landing=Floor(z,landing,top.z+4,top.z-z.loco:GetStepHeight()-2)
-    if not landing or math.abs(landing.z-top.z)>z.loco:GetStepHeight() or landing:DistToSqr(start)>C.MantleReach^2+height^2 then return end
-    -- A top may be a solid prop with no navmesh of its own. Require a safe
-    -- nearby exit on the navmesh rather than treating empty space as a ledge.
-    local exit=landing+direction*(z.Width*2+32)
-    exit=Floor(z,exit,top.z+4,start.z-z.loco:GetStepHeight()-2)
-    if not NavFloor(z,landing) and (not exit or not NavFloor(z,exit)) then return end
-    local rise=height+4;local raised=start+Vector(0,0,rise);local across=landing+Vector(0,0,4)
-    if not Clear(z,start,raised) or not Clear(z,raised,across) or not Clear(z,across,landing) then return end
-    return {start=Vector(start),landing=landing,rise=rise,height=height,direction=direction,
-        support=IsValid(support) and support or nil,supportPos=IsValid(support) and Vector(support:GetPos()),
-        expires=CurTime()+2,approach=tr.HitPos-direction*3}
+function O.MantlePlan(z,tr,goal,deadline)
+    return ZA1.Traversal.Plan(z,tr,goal,deadline)
 end
 function O.Queue(z,goal)
     if CurTime()<(z.ZANextObstacle or 0) or not goal then return end
@@ -115,7 +135,7 @@ function O.Tick()
     for count=1,C.ChecksPerTick do
         local chosen,job
         for z,pending in pairs(O.Pending) do
-            if not M.Active(z) or not z.ZAMoveGoal or z.ZAActing then O.Pending[z]=nil
+            if not M.Active(z) or z.ZAActing or not z.ZAMoveGoal and not z.ZADoorTarget then O.Pending[z]=nil
             elseif not job or pending.queued<job.queued then chosen,job=z,pending end
         end
         if not chosen then break end
@@ -129,10 +149,12 @@ function O.Tick()
                 local obstacle=tr.Entity
                 local door=ZA1.Doors and ZA1.Doors.IsDoor(obstacle)
                 if door then ZA1.Doors.Observe(chosen,obstacle,job.goal) end
-                if not door then
-                    local plan=O.MantlePlan(chosen,tr,job.goal)
-                    if plan then chosen.ZAMantlePlan=plan
-                    elseif IsValid(obstacle) and not obstacle:IsWorld() then
+                if not door or not ZA1.Doors.IsClosed(obstacle) then
+                    -- An open leaf is a physical obstacle, never a vault or
+                    -- door attack. Use the normal checked local detour.
+                    local plan=not door and O.IsFixed(obstacle) and O.MantlePlan(chosen,tr,job.goal,deadline)
+                    if plan then chosen.ZAMantlePlan=plan;chosen.ZAObstacleRoute=nil
+                    elseif IsValid(obstacle) and not obstacle:IsWorld() and SysTime()<deadline then
                         local low,high=obstacle:WorldSpaceAABB()
                         local center=(low+high)*0.5
                         local side=math.abs(delta.x)>=math.abs(delta.y) and (start.y>=center.y and 1 or -1) or (start.x>=center.x and 1 or -1)
@@ -142,74 +164,32 @@ function O.Tick()
                         else chosen.ZANextObstacle=CurTime()+C.RetryDelay;O.Stats.blocked=O.Stats.blocked+1 end
                     end
                 end
+            elseif ZA1.Traversal then
+                local plan=ZA1.Traversal.DropPlan(chosen,job.goal)
+                if plan then chosen.ZAMantlePlan=plan end
             end
         end
+        if chosen.ZADoorTarget then O.PrepareDoor(chosen) end
         if SysTime()>=deadline then break end
     end
 end
 function O.TryMantle(z)
-    local plan=z.ZAMantlePlan
-    if not plan then return false end
-    if not M.Active(z) or not M.MantleEnabled:GetBool() or CurTime()>=plan.expires
-        or plan.support and (not IsValid(plan.support) or plan.support:GetPos():DistToSqr(plan.supportPos)>8^2) then z.ZAMantlePlan=nil;return false end
-    if z:GetPos():DistToSqr(plan.approach)>16^2 then return false end
-    local start=z:GetPos()
-    if not Clear(z,start,start+Vector(0,0,plan.rise)) then z.ZAMantlePlan=nil;return false end
-    z.ZAMantlePlan=nil;z.ZAObstacleRoute=nil;O.Pending[z]=nil
-    N.Cancel(z);ZA1.Crowd.ReleaseClaim(z);ZA1.Look.Reset(z)
-    z.ZAActing,z.ZAMantling=true,true
-    z:SetAngles(Angle(0,plan.direction:Angle().y,0))
-    local gravity=z.loco:GetGravity();z.ZAMantleGravity=gravity;z.loco:SetGravity(0);z.loco:SetVelocity(vector_origin)
-    local flags=DT_Base.ToYieldFlags({doWounded=false,doIncapacitated=true})
-    local completed=true;local totalZ=0;local entries={}
-    for _,name in ipairs(C.Mantle) do
-        local id=z:LookupSequence(name);local ok,travel
-        if id>=0 then ok,travel=z:GetSequenceMovement(id,0,1) end
-        if not ok then completed=false;break end
-        entries[#entries+1]={name=name,id=id,travel=travel};totalZ=totalZ+travel.z
-    end
-    local accumulated,highest=0,0
-    for _,entry in ipairs(entries) do
-        if not completed then break end
-        local id=z:PlaySequence(entry.name,{move=false});local finish=CurTime()+z:SequenceDuration(id)+1
-        while z:Alive() and not z:IsAIDisabled() and not z.ZADowned and z:GetSequence()==id and CurTime()<finish do
-            local _,travel=z:GetSequenceMovement(id,0,z:GetCycle())
-            highest=math.max(highest,math.Clamp((accumulated+travel.z)/math.max(totalZ,1),0,1))
-            -- Follow the authored lift. Cross the edge only after the hull's
-            -- feet clear it, then settle onto the validated support at the end.
-            local lift=plan.rise*highest
-            local progress=math.Clamp((lift-plan.height)/(plan.rise-plan.height),0,1)
-            local desired=LerpVector(progress,start,plan.landing)+Vector(0,0,lift-progress*plan.height)
-            local tr=O.Sweep(z,z:GetPos(),desired)
-            if tr.Hit or tr.StartSolid or tr.AllSolid then completed=false;break end
-            z.loco:SetVelocity(vector_origin)
-            local multiplayer=not game.SinglePlayer()
-            if multiplayer then z:PhysicsDestroy() end
-            z:SetPos(desired)
-            if multiplayer then z:PhysicsInitShadow() end
-            if z:GetCycle()>=1 then break end
-            if coroutine.yield(flags) then completed=false;break end
-            if plan.support and (not IsValid(plan.support) or plan.support:GetPos():DistToSqr(plan.supportPos)>8^2) then completed=false;break end
-        end
-        if not z:Alive() or z:IsAIDisabled() or z.ZADowned or z:GetSequence()~=id or CurTime()>=finish then completed=false end
-        accumulated=accumulated+entry.travel.z
-    end
-    if IsValid(z) then
-        z.loco:SetGravity(gravity);z.ZAMantleGravity=nil;z.loco:SetVelocity(vector_origin)
-        z.ZAActing,z.ZAMantling=false,false;z.ZANextMantle=CurTime()+C.MantleCooldown
-        N.PauseProgress(z);z.ZADirect=nil;z.ZAPathGoal=nil
-        if z:Alive() then
-            if not z.ZADowned then z:ResetAnimState() end
-            M.Wake(z)
-        end
-    end
-    if completed then O.Stats.mantles=O.Stats.mantles+1 end
-    return true
+    return ZA1.Traversal.Try(z)
 end
 function O.Clear(z)
-    O.Pending[z]=nil;z.ZAMantlePlan,z.ZAObstacleRoute=nil,nil
+    if ZA1.Traversal then ZA1.Traversal.Clear(z) end
+    O.Pending[z]=nil
+    if not IsValid(z) then return end
+    z.ZAMantlePlan,z.ZAObstacleRoute=nil,nil
+    if ZA1.Doors then ZA1.Doors.Clear(z) end
     if z.ZAMantleGravity then z.loco:SetGravity(z.ZAMantleGravity);z.ZAMantleGravity=nil end
     if z.ZAMantling then z.ZAMantling,z.ZAActing=false,false end
 end
 hook.Add("Think","ZA1/Obstacles",O.Tick)
-hook.Add("PostCleanupMap","ZA1/Obstacles",function() O.Pending=setmetatable({},{__mode="k"}) end)
+hook.Add("PostCleanupMap","ZA1/Obstacles",function()
+    if ZA1.Traversal then
+        for z in pairs(ZA1.Traversal.Active) do ZA1.Traversal.Clear(z) end
+        ZA1.Traversal.DropSlots=setmetatable({},{__mode="k"});ZA1.Traversal.DropCount=0
+    end
+    O.Pending=setmetatable({},{__mode="k"})
+end)

@@ -158,6 +158,7 @@ end
 
 function S.Tick(z)
     if not z:Alive() then return end
+    if z.ZADowned then ZA1.Recovery.Tick(z); return end
     if CurTime() >= (z.ZANextSpecialBounds or 0) then
         z.ZANextSpecialBounds = CurTime() + 1
         if z:GetModelScale() ~= z.ZASpecialScale then S.RefreshHitboxes(z) end
@@ -408,6 +409,11 @@ end
 
 function S.Event(z, event, time, cycle, typ, options)
     if not z:Alive() then return end
+    if z.ZADowned and not z.ZADowned.gettingUp then return true end
+    local traversal=ZA1.TraversalAssets and ZA1.TraversalAssets.Sounds[z.ZASpecial]
+    if event==1101 and traversal and traversal[z:GetSequenceName(z:GetSequence())] then
+        return baseclass.Get("npc_dt_za1_zombie").HandleAnimEvent(z,event,time,cycle,typ,options)
+    end
     if event == 1102 and z.ZAFuse then
         local marker = z.ZASpecialAssets.Explosion[z:GetSequenceName(z:GetSequence())]
         if marker and marker.Option == options then S.Detonate(z); return true end
@@ -465,6 +471,9 @@ end
 function S.Died(z, info)
     if z.ZADeathHandled then return end
     z.ZADeathHandled = true; S.StopVoice(z)
+    local gib=z.ZASpecial=="skeleton" or z.ZASpecial=="suicide" and (z.ZAFuse or z.ZAExplodeOnDeath or info:IsExplosionDamage())
+    ZA1.Recovery.Clear(z,not gib)
+    if z.ZASpecial=="suicide" and IsValid(z.ZAExistingCorpse) then ZA1.CorpseCharges.Register(z,z.ZAExistingCorpse) end
     if z.ZABreathInSound then z:StopSound(z.ZABreathInSound) end
     if z.ZABreathOutSound then z:StopSound(z.ZABreathOutSound) end
     if z.ZASpecial == "skeleton" then S.Sound(z, "death", 80, true); S.Breakup(z, info)

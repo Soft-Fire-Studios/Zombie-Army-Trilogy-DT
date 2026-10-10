@@ -265,7 +265,9 @@ if SERVER then
             local id = self:GetSequence()
             if self.ZASoundSequence ~= id then
                 self.ZASoundSequence = id
-                self.ZASoundBindings = ZA1.Assets.animationSounds[self:GetSequenceName(id)]
+                local name=self:GetSequenceName(id)
+                local traversal=ZA1.TraversalAssets and ZA1.TraversalAssets.Sounds[self.ZASpecial or "common"]
+                self.ZASoundBindings = traversal and traversal[name] or ZA1.Assets.animationSounds[name]
             end
             local bindings = self.ZASoundBindings
             local binding = bindings and bindings[options]

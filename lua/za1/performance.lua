@@ -4,7 +4,7 @@ local F = {}
 ZA1.Performance = F
 local M, N, G, P = ZA1.Manager, ZA1.Navigation, ZA1.Crowd, ZA1.Population
 local Detail = include("za1/performance_detail.lua")
-local Modules = {awareness = M, navigation = N, crowd = G, population = P, obstacles = ZA1.Obstacles}
+local Modules = {awareness = M, navigation = N, crowd = G, population = P, obstacles = ZA1.Obstacles, traversal = ZA1.Traversal}
 local function Count(t) local n = 0; for _ in pairs(t) do n = n + 1 end; return n end
 local function Authorized(ply) return not IsValid(ply) or ply:IsAdmin() end
 local function Output(ply, text)

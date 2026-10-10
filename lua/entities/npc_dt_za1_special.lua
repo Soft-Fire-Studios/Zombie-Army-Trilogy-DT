@@ -11,7 +11,7 @@ if SERVER then
     local S = ZA1.Specials
     function ENT:OnInitialize() S.Initialize(self) end
     function ENT:OnThink() S.Tick(self) end
-    function ENT:OnRemove() S.StopVoice(self); ZA1.Manager.Unregister(self) end
+    function ENT:OnRemove() S.StopVoice(self); ZA1.Recovery.Clear(self); ZA1.Manager.Unregister(self) end
     function ENT:OnEntityDetected(ent)
         if not self:IsHatedEntity(ent) then return end
         ZA1.Manager.Wake(self); ZA1.Manager.Alert(self, ent:GetPos())
@@ -21,9 +21,9 @@ if SERVER then
         S.Trace(self, info, dir, tr)
         return baseclass.Get("base_dt_nextbot").OnTraceAttack(self, info, dir, tr)
     end
-    function ENT:OnWounded(info, tr) S.Wounded(self, info, tr) end
+    function ENT:OnWounded(info, tr) S.Wounded(self, info, self.ZADownedHitTrace or tr) end
     function ENT:DoWounded(info)
-        if self.ZASpecial ~= "suicide" and self.ZASpecial ~= "heavy" or self.ZAFuse or self.ZAActing or not self:Alive()
+        if self.ZASpecial ~= "suicide" and self.ZASpecial ~= "heavy" or self.ZAFuse or self.ZAActing or self.ZADowned or not self:Alive()
             or self:IsPossessed() or self:IsAIDisabled() or info:GetDamage() >= self:Health()
             or info:GetDamage() < ZA1.Config.Flinch.MinDamage or CurTime() < (self.ZANextFlinch or 0) then return end
         self.ZANextFlinch = CurTime() + 10
@@ -43,6 +43,7 @@ if SERVER then
     end
     function ENT:OnIncapacitated(info) S.Died(self, info) end
     function ENT:RagdollOrRemove(info, tr)
+        if IsValid(self.ZAExistingCorpse) then self:Remove(); return end
         if self.ZABrokenApart then self:Remove(); return end
         return baseclass.Get("base_dt_nextbot").RagdollOrRemove(self, info, tr)
     end

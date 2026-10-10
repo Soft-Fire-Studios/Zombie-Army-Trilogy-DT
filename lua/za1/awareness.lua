@@ -24,6 +24,8 @@ M.ResurrectionEnabled = CreateConVar("za1_resurrection", "1", flags, "Allow comm
 M.ResurrectionChance = CreateConVar("za1_resurrection_chance", tostring(ZA1.Config.Recovery.ResurrectionChance*100), flags, "Common resurrection chance in percent, at most once per zombie.", 0, 100)
 M.MantleEnabled = CreateConVar("za1_mantle", "1", flags, "Allow standing zombies to mantle supported obstacles.", 0, 1)
 M.MantleHeight = CreateConVar("za1_mantle_height", tostring(ZA1.Config.Obstacles.MantleMaxHeight), flags, "Maximum mantle height in Source units.", 32, 160)
+M.DropEnabled = CreateConVar("za1_drop", "1", flags, "Allow soldiers and Suicide Grunts to jump into a controlled ragdoll drop.", 0, 1)
+M.DropHeight = CreateConVar("za1_drop_height", tostring(ZA1.Config.Obstacles.DropMaxHeight), flags, "Maximum intentional drop height in Source units; capped at the authored 3.5 m jump.", 32, 138)
 M.RetireDelay = CreateConVar("za1_recycle_delay", tostring(ZA1.Config.Population.SleepDelay), flags, "Seconds outside player radii and unseen before recycling.", 3, 60)
 M.EventDistance = CreateConVar("za1_event_sound_distance", tostring(ZA1.Config.Audio.EventDistance), flags, "Maximum player distance for animation sounds; 0 disables culling.", 0, 4096)
 M.DirectorEnabled = CreateConVar("za1_director_running", "1", flags, "Allow the Zombie Army director to populate the map.", 0, 1)
@@ -45,6 +47,7 @@ util.AddNetworkString("ZA1/Setting")
 local settings = {za1_wander={0,1},za1_alert_range={128,1500},za1_population_cap={8,100},za1_director_initial_density={0,100},za1_director_density_per_minute={0,100},za1_director_running={0,1},za1_director_radius={960,8192},za1_recycle_delay={3,60},za1_event_sound_distance={0,4096},za1_ragdoll_lifetime={10,180},za1_ragdoll_cap={0,64},
     za1_director_spawn_min_radius={128,8192},za1_director_visible_commons={0,1},
     za1_director_spawn_mode={0,3},za1_resurrection={0,1},za1_resurrection_chance={0,100},za1_mantle={0,1},za1_mantle_height={32,160},
+    za1_drop={0,1},za1_drop_height={32,138},
     za1_crowd={0,1},za1_shared_routes={0,1},za1_dormancy={0,1},za1_path_budget={1,8},za1_path_burst={1,16},
     za1_specials={0,1},za1_special_chance={0,50},za1_skeleton_limit={0,12},za1_suicide_limit={0,6},za1_heavy_limit={0,6}}
 net.Receive("ZA1/Setting", function(_, ply)
@@ -100,6 +103,7 @@ function M.Unregister(z)
         if type(kind) == "string" then M.SpecialCounts[kind] = math.max(0, (M.SpecialCounts[kind] or 0) - 1) end
     end
     M.Zombies[z], M.Hearing[z] = nil, nil
+    if ZA1.Obstacles then ZA1.Obstacles.Clear(z) end
     if ZA1.Navigation then ZA1.Navigation.Cancel(z) end
     if ZA1.Crowd then ZA1.Crowd.Release(z) end
     if not IsValid(z) then return end

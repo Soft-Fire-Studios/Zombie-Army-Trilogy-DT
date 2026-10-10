@@ -59,8 +59,9 @@ end
 function R.Attack(z,target)
     local weapon=z:GetBodygroup(ZA1.Config.Equipment.WeaponBodygroup);local gun=A.Weapons[weapon]
     if not gun or z.ZAActing or z.ZACrawling or z:GetBodygroup(3)>0 or CurTime()<(z.ZANextRanged or 0) then return false end
+    local actions=A.Actions[gun.Action];if not actions or #actions==0 then return false end
     z.ZANextRanged=CurTime()+math.Rand(C.MinCooldown,C.MaxCooldown)
-    local action=A.Actions[math.random(#A.Actions)]
+    local action=actions[math.random(#actions)]
     z.ZAFiring,z.ZARangedTarget,z.ZARangedAction,z.ZARangedGun=true,target,action,gun
     z.ZAGunShots,z.ZAGunClosed=0,false
     z:ZAPlayOnce(action.Sequence,function()

@@ -55,7 +55,7 @@ return {
     -- Addon balance; the three authored Trilogy gun actions are occasional.
     Ranged = {MinDistance = 240, MaxDistance = 1400, Chance = 0.35,
         MinCooldown = 8, MaxCooldown = 16,
-        FireInterval = 0.12, Damage = 6, Spread = 0.12, Volume = 0.65},
+        FireInterval = 0.12, Damage = 6, Spread = 0.12, Volume = 0.9},
     Lunge = {Chance = 0.35, Cooldown = 6, RetryDelay = 1},
     Navigation = {
         Acceleration = 300,
@@ -106,9 +106,13 @@ return {
         Interval = 0.25, ChecksPerTick = 3, BudgetMS = 0.6,
         ProbeDistance = 120, Clearance = 8, MaxDetour = 320,
         RouteLifetime = 3, RetryDelay = 0.75,
-        MantleEnabled = true, MantleMaxHeight = 128, MantleMinHeight = 32,
+        MantleEnabled = true, MantleMaxHeight = 138, MantleMinHeight = 32,
         MantleReach = 120, MantleCooldown = 2,
-        Mantle = {"undead_grunt_mantle_coast_2m_01", "undead_grunt_mantle_coast_2m_01_part2"}
+        MantleCoastHeight = 2 * 39.37007874,
+        FenceHeight = 3.5 * 39.37007874,
+        LedgeScanStep = 16, EdgeScanStep = 12,
+        DropMaxHeight = 138, DropMinHeight = 32,
+        DropRagdollTime = 0.7, DropMaxSpeed = 300
     },
     Performance = {
         NearDistance = 900,

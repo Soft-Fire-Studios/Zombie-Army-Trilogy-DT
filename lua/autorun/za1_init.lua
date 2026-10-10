@@ -26,6 +26,9 @@ AddCSLuaFile("za1/look_assets.lua")
 AddCSLuaFile("za1/revival_assets.lua")
 ZA1.LookAssets = include("za1/look_assets.lua")
 ZA1.RevivalAssets = include("za1/revival_assets.lua")
+AddCSLuaFile("za1/traversal_assets.lua")
+ZA1.TraversalAssets = include("za1/traversal_assets.lua")
+for file,duration in pairs(ZA1.TraversalAssets.Durations) do ZA1.Assets.soundDurations[file]=duration end
 for sequence,binding in pairs(ZA1.RevivalAssets.animationSounds) do ZA1.Assets.animationSounds[sequence]=binding end
 for file,duration in pairs(ZA1.RevivalAssets.soundDurations) do ZA1.Assets.soundDurations[file]=duration end
 AddCSLuaFile("za1/equipment_assets.lua")
@@ -51,6 +54,7 @@ if SERVER then
     include("za1/motion.lua")
     include("za1/population.lua")
     include("za1/spawn_zones.lua")
+    include("za1/traversal.lua")
     include("za1/obstacles.lua")
     include("za1/corpse_charges.lua")
     include("za1/skeleton_armor.lua")
@@ -67,6 +71,7 @@ else
         za1_director_visible_commons=ZA1.Config.Population.VisibleCommonSpawns and "1" or "0",
         za1_director_spawn_mode="0",za1_resurrection="1",za1_resurrection_chance=tostring(ZA1.Config.Recovery.ResurrectionChance*100),
         za1_mantle="1",za1_mantle_height=tostring(ZA1.Config.Obstacles.MantleMaxHeight),
+        za1_drop="1",za1_drop_height=tostring(ZA1.Config.Obstacles.DropMaxHeight),
         za1_wander="1", za1_alert_range="600", za1_event_sound_distance="1400",
         za1_ragdoll_lifetime="45", za1_ragdoll_cap="24", za1_crowd="1",
         za1_shared_routes="1", za1_path_budget="2", za1_path_burst="8",
@@ -136,6 +141,8 @@ if CLIENT then
             slider("Resurrection chance (%)", "za1_resurrection_chance", 0, 100)
             checkbox("Allow mantling", "za1_mantle")
             slider("Maximum mantle height", "za1_mantle_height", 32, 160)
+            checkbox("Allow controlled drops", "za1_drop")
+            slider("Maximum drop height", "za1_drop_height", 32, 138)
             slider("Nearby alert distance", "za1_alert_range", 128, 1500)
             slider("Animation sound distance (0 = unlimited)", "za1_event_sound_distance", 0, 4096)
             slider("Ragdoll lifetime (seconds)", "za1_ragdoll_lifetime", 10, 180)

@@ -3,6 +3,12 @@ local R={active=0};ZA1.Recovery=R
 if CLIENT then return end
 local C=ZA1.Config.Recovery
 local A=ZA1.RevivalAssets
+local function Refresh(z,rag)
+    if z.ZASpecial then
+        rag.ZASpecial,rag.ZASpecialAssets=z.ZASpecial,z.ZASpecialAssets
+        ZA1.Specials.RefreshHitboxes(rag)
+    else ZA1.Equipment.Refresh(rag) end
+end
 local function BodySolid(z,enabled)
     z:SetNotSolid(not enabled)
     local physics=z:GetPhysicsObject()
@@ -25,20 +31,23 @@ function R.Clear(z,keepCorpse)
         if keepCorpse then
             z:DontDeleteOnRemove(state.rag);state.rag:SetOwner(NULL)
             for group=0,z:GetNumBodyGroups()-1 do state.rag:SetBodygroup(group,z:GetBodygroup(group)) end
-            ZA1.Equipment.Refresh(state.rag)
+            Refresh(z,state.rag)
             ZA1.Gore.Ragdoll(z,state.rag);ZA1.Manager.Ragdoll(state.rag)
             z.ZAExistingCorpse=state.rag
         else Finish(state.rag) end
     end
 end
-function R.Request(z,info,resurrection,limbFall)
-    if z.ZADowned or z.ZAHeadDestroyed or z:IsPossessed() and not limbFall or z.ZAActing and not limbFall or z.__DT_PhysgunPickup
-        or R.active>=C.MaxActiveRagdolls and not limbFall then return false end
+function R.Request(z,info,resurrection,limbFall,drop)
+    local traversal=ZA1.Traversal
+    local reserved=drop and traversal and traversal.DropSlots[z]
+    local occupied=R.active+(traversal and traversal.DropCount or 0)
+    if z.ZADowned or z.ZAHeadDestroyed or z:IsPossessed() and not limbFall or z.ZAActing and not limbFall and not drop or z.__DT_PhysgunPickup
+        or occupied>=C.MaxActiveRagdolls and not limbFall and not reserved then return false end
     local state={started=CurTime(),resurrection=resurrection,force=Vector(info:GetDamageForce()),velocity=Vector(z:GetVelocity()),
         wait=resurrection and C.ResurrectionDelay or math.Rand(C.MinDownTime,C.MaxDownTime),limbFall=limbFall,
         health=resurrection and math.max(1,math.Round(z:GetMaxHealth()*C.ResurrectionHealth)) or nil}
     z.ZADowned=state;R.active=R.active+1
-    if limbFall then
+    if limbFall or drop then
         state.pose={}
         for bone=0,z:GetBoneCount()-1 do
             local matrix=z:GetBoneMatrix(bone)
@@ -52,6 +61,12 @@ function R.Request(z,info,resurrection,limbFall)
     state.sight=z.EnableSight;z.EnableSight=false
     ZA1.Look.Reset(z)
     z.ZAMoveGoal=nil;z.ZAAttacking=false;z.loco:SetVelocity(vector_origin)
+    return true
+end
+function R.Drop(z,velocity,landing)
+    local info=DamageInfo();info:SetDamage(0);info:SetDamageForce(vector_origin)
+    if not R.Request(z,info,false,false,true) then return false end
+    z.ZADowned.drop=true;z.ZADowned.velocity=Vector(velocity);z.ZADowned.landing=Vector(landing)
     return true
 end
 function R.Damage(z,info)
@@ -74,7 +89,7 @@ local function SpawnRagdoll(z,state)
     rag:SetSkin(z:GetSkin());rag:SetModelScale(z:GetModelScale(),0)
     for group=0,z:GetNumBodyGroups()-1 do rag:SetBodygroup(group,z:GetBodygroup(group)) end
     rag:SetOwner(z);rag:Spawn();rag:Activate();rag:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
-    ZA1.Equipment.Refresh(rag)
+    Refresh(z,rag)
     ZA1.Gore.Ragdoll(z,rag)
     state.rag=rag;rag.ZARecoveryOwner=z;z:DeleteOnRemove(rag)
     local objects,totalMass={},0
@@ -127,6 +142,12 @@ function R.Tick(z)
     if CurTime()-state.started<state.wait or z:IsAIDisabled() then return end
     local physics=state.rag:GetPhysicsObject()
     local settled=not IsValid(physics) or physics:GetVelocity():LengthSqr()<C.SettleSpeed^2
+    if state.drop then
+        local ground=util.TraceLine({start=state.rag:GetPos()+Vector(0,0,8),endpos=state.rag:GetPos()-Vector(0,0,z.Height),
+            mask=MASK_SOLID,filter={z,state.rag}})
+        -- The ordinary timeout must not get an airborne actor up in midair.
+        if not ground.Hit or ground.HitNormal.z<0.65 or not settled then return end
+    end
     if not settled and CurTime()-state.started<C.MaxDownTimeLimit then return end
     state.ready=true
 end
@@ -141,7 +162,8 @@ function R.GetUp(z)
     local side=facing.z>0 and "back" or "front"
     local pool=z.ZACrawling and A.crawl[side] or (state.resurrection and A.revive or A.getup)[side]
     local sequence=pool[math.random(#pool)]
-    local placement=A.placement[sequence]
+    local model=ZA1.TraversalAssets and ZA1.TraversalAssets.Models[z:GetModel()]
+    local placement=model and model.Placement[sequence] or A.placement[sequence]
     local _,rotation=LocalToWorld(vector_origin,Angle(unpack(placement.angles)),vector_origin,angle_zero)
     -- Match the authored first-frame pelvis to the physical pelvis, then
     -- keep only world yaw: locomotion must remain upright on the navmesh.

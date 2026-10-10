@@ -1,10 +1,8 @@
 if SERVER then AddCSLuaFile();AddCSLuaFile("za1/feedback_assets.lua") end
 local F={};ZA1.Feedback=F
 local A=include("za1/feedback_assets.lua")
-for file,names in pairs(A.Particles) do
-    game.AddParticles(file)
-    for _,name in ipairs(names) do PrecacheParticleSystem(name) end
-end
+-- SNPC-PRP registers its original PCFs. Reference its systems by name only.
+for _,name in ipairs(A.Particles) do PrecacheParticleSystem(name) end
 if SERVER then
     util.AddNetworkString("ZA1/Feedback")
     local guns={mp40=1,thompson=2,luger=3}
@@ -34,9 +32,9 @@ function F.Light(pos,explosion,entity)
     local id=explosion and 229376+lightID or 196608+(IsValid(entity) and entity:EntIndex() or lightID)
     local light=DynamicLight(id);if not light then return end
     light.pos=pos;light.r=255;light.g=explosion and 145 or 205;light.b=explosion and 65 or 130
-    light.brightness=explosion and 3 or 1.5;light.size=explosion and 450 or 140
-    local life=explosion and 0.25 or 0.06
-    light.decay=light.size/life;light.dietime=CurTime()+life
+    local radius,life=explosion and 450 or 140,explosion and 0.25 or 0.06
+    light.brightness=explosion and 3 or 1.5;light.size=radius
+    light.decay=radius/life;light.dietime=CurTime()+life
 end
 net.Receive("ZA1/Feedback",function()
     local kind,pos,angles=net.ReadUInt(2),net.ReadVector(),net.ReadAngle()

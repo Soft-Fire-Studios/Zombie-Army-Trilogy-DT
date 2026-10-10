@@ -505,6 +505,13 @@ function N.Follow(z)
     local cached = z.ZADirect
     local direct = cached and N.DirectUsable(z, cached.goal, pos)
     if not direct and not IsValid(path) then
+        -- A local traversal can bridge a prop or drop missing from the static
+        -- navmesh. It must still receive probes while a native route fails.
+        local obstacle=ZA1.Obstacles and ZA1.Obstacles.Steer(z,path,z.ZAMoveGoal)
+        if obstacle then
+            z:Approach(obstacle);z:FaceTowards(obstacle);z.__DT_IsMoving=true
+            N.PauseProgress(z);return
+        end
         if not N.Pending[z] then N.Request(z, (z.ZAMovePriority or 0) > 0 and N.Guide(z, z.ZAMoveGoal) or z.ZAMoveGoal, z.ZAMovePriority, nil, z.ZAMoveGoal) end
         -- DT clears this flag each tick. While a route check waits, animate
         -- any remaining braking velocity without issuing unsafe movement.
