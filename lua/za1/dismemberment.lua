@@ -1,4 +1,5 @@
 if SERVER then AddCSLuaFile() end
+AddCSLuaFile("za1/dismemberment_assets.lua")
 local D={};ZA1.Dismemberment=D
 local A=include("za1/dismemberment_assets.lua")
 local waistTorso = 1

@@ -4,20 +4,26 @@ ENT.PrintName, ENT.Spawnable = "Occult General shield skull", false
 ENT.ZASpecial = "general_skull"
 if CLIENT then
     function ENT:Think()
+        local effects, orbit = ZA1 and ZA1.EnemyVFX, ZA1 and ZA1.GeneralOrbit
+        if not effects or not orbit then
+            self.ZAOrbitRenderPosition, self.ZAOrbitRenderAngles = nil, nil
+            self:SetRenderOrigin(nil); self:SetRenderAngles(nil)
+            return
+        end
         local owner = self:GetNW2Entity("za1_general")
-        local center = ZA1.EnemyVFX.Position(owner, self:GetNW2String("za1_skull_anchor", "Core"), "general")
+        local center = effects.Position(owner, self:GetNW2String("za1_skull_anchor", "Core"), "general")
         if center then
-            local position, angles = ZA1.GeneralOrbit.World(self:GetNW2String("za1_skull_path", ""),
+            local position, angles = orbit.World(self:GetNW2String("za1_skull_path", ""),
                 math.max(0, CurTime() - self:GetNW2Float("za1_orbit_start", CurTime())) * self:GetNW2Float("za1_skull_rate", 1), center,
                 owner:GetAngles(), owner:GetModelScale())
-            if angles then angles = ZA1.GeneralOrbit.ModelAngles(angles) end
+            if angles then angles = orbit.ModelAngles(angles) end
             self.ZAOrbitRenderPosition, self.ZAOrbitRenderAngles = position, angles
             self:SetRenderOrigin(position); self:SetRenderAngles(angles)
         else
             self.ZAOrbitRenderPosition, self.ZAOrbitRenderAngles = nil, nil
             self:SetRenderOrigin(nil); self:SetRenderAngles(nil)
         end
-        if ZA1.EnemyVFX then ZA1.EnemyVFX.Update(self) end
+        effects.Update(self)
     end
     return
 end

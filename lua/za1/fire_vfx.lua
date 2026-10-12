@@ -279,7 +279,9 @@ hook.Add("Think", "ZA1/FireVFX", function()
         local row = rows[index]
         if not row.Fixed and not IsValid(row.Owner) and row.KeepOnRemove then
             row.Fixed, row.Owner = true, nil
-            if row.Effect and row.Effect:IsValid() then row.Effect:SetControlPointEntity(0, NULL) end
+            -- Stop model-surface emission before draining existing particles.
+            -- SetControlPointEntity requires a live entity, even when clearing
+            -- a reference; the engine releases its handle when that entity dies.
             Stop(row, false)
         end
         if not row.Fixed and not IsValid(row.Owner) or not Visible(row.Fixed and row.Position or row.Owner:GetPos())

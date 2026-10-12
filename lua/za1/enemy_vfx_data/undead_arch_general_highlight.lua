@@ -1,0 +1,245 @@
+-- Original Trilogy enemy effects: Undead_Arch_General_Highlight
+return {
+    ["Systems"] = {
+        ["NativeFlags"] = 67,
+        ["SourceStopPolicy"] = "stop emission recursively; drain for MaxParticleLife; clear on owner removal",
+        ["Duration"] = 3,
+        ["StopOnStateEnd"] = true,
+        ["MaxLife"] = 9,
+        ["Drain"] = 4,
+        ["GroundPlane"] = false,
+        ["NativeID"] = 2762514883,
+        ["NativeLightingSuppressed"] = true,
+        ["Loop"] = true,
+        ["MaxParticleLife"] = 4,
+        ["NativeName"] = "UndeadSS\\Characters\\Undead_Arch_General_Highlight",
+        ["Layers"] = {
+            {
+                ["EmissionEnd"] = 0,
+                ["ParticleDrain"] = 1,
+                ["Index"] = 0,
+                ["Renderer"] = "client_native_sprite",
+                ["Name"] = "UndeadSS\\Characters\\Undead_Arch_General_Highlight:source_S",
+                ["NativeID"] = 1543874854,
+                ["Material"] = "zombiearmytrilogy/enemyfx/general/highlight/source_s",
+                ["Component"] = {["Flags"] = 0, ["Matrix"] = {1, 0, 0, 0, 1, 0, 0, 0, 1}, ["Shape"] = 0, ["Translation"] = {0, 0, 0}, ["Parameters"] = {}, ["Delay"] = 0, ["ShapeName"] = "point"},
+                ["SourceCapacity"] = 1,
+                ["Kind"] = "particle",
+                ["BlendMode"] = 1,
+                ["HostSprite"] = true
+            },
+            {
+                ["EmissionEnd"] = 5,
+                ["ParticleDrain"] = 4,
+                ["Kind"] = "particle",
+                ["Renderer"] = "Source_PCF",
+                ["Name"] = "UndeadSS\\Characters\\Undead_Arch_General_Highlight:_ripple",
+                ["NativeID"] = 1771113624,
+                ["Material"] = "zombiearmytrilogy/enemyfx/general/highlight/ripple",
+                ["SourceCapacity"] = 7,
+                ["SourceSystem"] = "Undead_Arch_General_Highlight_ripple",
+                ["Index"] = 1,
+                ["Component"] = {
+                    ["Flags"] = 0,
+                    ["Matrix"] = {
+                        0.9999998807907104,
+                        -2.561137080192566e-09,
+                        1.4901161193847656e-08,
+                        -1.1641532182693481e-09,
+                        0.9999998807907104,
+                        -3.725290298461914e-09,
+                        1.4901161193847656e-08,
+                        1.862645149230957e-09,
+                        1
+                    },
+                    ["Shape"] = 2,
+                    ["Translation"] = {6.487593054771423e-06, 1.3089033365249634, 5.811452865600586e-07},
+                    ["Parameters"] = {["radius"] = 1},
+                    ["Delay"] = 0,
+                    ["ShapeName"] = "sphere"
+                }
+            }
+        }
+    },
+    ["Effects"] = {
+        ["NativeFlags"] = 67,
+        ["SourceStopPolicy"] = "stop emission recursively; drain for MaxParticleLife; clear on owner removal",
+        ["Duration"] = 3,
+        ["StopOnStateEnd"] = true,
+        ["MaxLife"] = 9,
+        ["Drain"] = 4,
+        ["GroundPlane"] = false,
+        ["NativeID"] = 2762514883,
+        ["NativeLightingSuppressed"] = true,
+        ["Loop"] = true,
+        ["MaxParticleLife"] = 4,
+        ["NativeName"] = "UndeadSS\\Characters\\Undead_Arch_General_Highlight",
+        ["Layers"] = {
+            {
+                ["EmissionEnd"] = 0,
+                ["ParticleDrain"] = 1,
+                ["Index"] = 0,
+                ["Renderer"] = "client_native_sprite",
+                ["Name"] = "UndeadSS\\Characters\\Undead_Arch_General_Highlight:source_S",
+                ["NativeID"] = 1543874854,
+                ["Material"] = "zombiearmytrilogy/enemyfx/general/highlight/source_s",
+                ["Component"] = {["Flags"] = 0, ["Matrix"] = {1, 0, 0, 0, 1, 0, 0, 0, 1}, ["Shape"] = 0, ["Translation"] = {0, 0, 0}, ["Parameters"] = {}, ["Delay"] = 0, ["ShapeName"] = "point"},
+                ["SourceCapacity"] = 1,
+                ["Kind"] = "particle",
+                ["BlendMode"] = 1,
+                ["HostSprite"] = true
+            },
+            {
+                ["EmissionEnd"] = 5,
+                ["ParticleDrain"] = 4,
+                ["Kind"] = "particle",
+                ["Renderer"] = "Source_PCF",
+                ["Name"] = "UndeadSS\\Characters\\Undead_Arch_General_Highlight:_ripple",
+                ["NativeID"] = 1771113624,
+                ["Material"] = "zombiearmytrilogy/enemyfx/general/highlight/ripple",
+                ["SourceCapacity"] = 7,
+                ["SourceSystem"] = "Undead_Arch_General_Highlight_ripple",
+                ["Index"] = 1,
+                ["Component"] = {
+                    ["Flags"] = 0,
+                    ["Matrix"] = {
+                        0.9999998807907104,
+                        -2.561137080192566e-09,
+                        1.4901161193847656e-08,
+                        -1.1641532182693481e-09,
+                        0.9999998807907104,
+                        -3.725290298461914e-09,
+                        1.4901161193847656e-08,
+                        1.862645149230957e-09,
+                        1
+                    },
+                    ["Shape"] = 2,
+                    ["Translation"] = {6.487593054771423e-06, 1.3089033365249634, 5.811452865600586e-07},
+                    ["Parameters"] = {["radius"] = 1},
+                    ["Delay"] = 0,
+                    ["ShapeName"] = "sphere"
+                }
+            }
+        }
+    },
+    ["Sprites"] = {
+        {
+            ["NativeID"] = 1543874854,
+            ["Leader"] = {
+                ["Curves"] = {
+                    ["0x0"] = {{1, 1, 1, 0.4000000059604645}},
+                    ["0x14c"] = {{0, 0, 0}, {0, 0, 0}},
+                    ["0x54"] = {
+                        {0},
+                        {0.06444445252418518},
+                        {0.12444444745779037},
+                        {0.18000000715255737},
+                        {0.23111112415790558},
+                        {0.2777777910232544},
+                        {0.3199999928474426},
+                        {0.35777777433395386},
+                        {0.3911111354827881},
+                        {0.42000001668930054},
+                        {0.4444444477558136},
+                        {0.46444445848464966},
+                        {0.47999998927116394},
+                        {0.4911111295223236},
+                        {0.4977777898311615},
+                        {0.5}
+                    },
+                    ["0x130"] = {{0}},
+                    ["0x114"] = {{1}},
+                    ["0x168"] = {{0}},
+                    ["0x1c"] = {{0, 1}},
+                    ["0x38"] = {{0, 0}},
+                    ["0x70"] = {{0}}
+                },
+                ["Atlas"] = {
+                    ["FrameBlend"] = false,
+                    ["CurveDriven"] = false,
+                    ["RuntimeUVLookup"] = "native per-component frames",
+                    ["Sequence"] = 0,
+                    ["RandomStart"] = true,
+                    ["Frames"] = {{0, 0, 0.125, 0.125, 0}},
+                    ["Loop"] = false,
+                    ["RateVariation"] = 1,
+                    ["Mode"] = 1,
+                    ["FrameCurve"] = {{0}, {1}}
+                },
+                ["Index"] = 0,
+                ["BlendMode"] = 1,
+                ["GroundPlane"] = false,
+                ["NativeName"] = "UndeadSS\\Characters\\Undead_Arch_General_Highlight:source_S",
+                ["Words"] = {
+                    ["0xac"] = 100,
+                    ["0xa4"] = 1,
+                    ["0x98"] = 0,
+                    ["0xfc"] = 0.699999988079071,
+                    ["0x94"] = 0.10000000149011612,
+                    ["0x90"] = 0,
+                    ["0xf0"] = 0,
+                    ["0xf8"] = 0.5,
+                    ["0x104"] = 0,
+                    ["0x184"] = 0,
+                    ["0x10c"] = 0,
+                    ["0x9c"] = 0,
+                    ["0xf4"] = 0,
+                    ["0x108"] = 0,
+                    ["0xa8"] = 0.5,
+                    ["0x100"] = 0,
+                    ["0x8c"] = 1,
+                    ["0xb0"] = 200,
+                    ["0xa0"] = 1
+                },
+                ["NativeID"] = 1543874854,
+                ["Material"] = "zombiearmytrilogy/enemyfx/general/highlight/source_s",
+                ["NoHistory"] = true,
+                ["ColorScale"] = 1,
+                ["SourceCapacity"] = 1,
+                ["Component"] = {["Flags"] = 0, ["Matrix"] = {1, 0, 0, 0, 1, 0, 0, 0, 1}, ["Shape"] = 0, ["Translation"] = {0, 0, 0}, ["Parameters"] = {}, ["Delay"] = 0, ["ShapeName"] = "point"},
+                ["Emitter"] = {
+                    ["Curves"] = {
+                        ["0x0"] = {{0.056588925421237946}},
+                        ["0xc4"] = {{0, 0, 0}},
+                        ["0x8c"] = {{1}},
+                        ["0xfc"] = {{0}},
+                        ["0xe0"] = {{1}},
+                        ["0xa8"] = {{9.8100004196167}},
+                        ["0x38"] = {{0}},
+                        ["0x1c"] = {{0, 0, 0}},
+                        ["0x54"] = {{0, 0, 0}},
+                        ["0x70"] = {{10}}
+                    },
+                    ["Words"] = {
+                        ["0x140"] = 1,
+                        ["0x14c"] = 0,
+                        ["0x130"] = 1543874854,
+                        ["0x150"] = 100,
+                        ["0x160"] = -1,
+                        ["0x11c"] = 0,
+                        ["0x144"] = 1,
+                        ["0x154"] = 5,
+                        ["0x134"] = 1,
+                        ["0x148"] = 1,
+                        ["0x16c"] = 1,
+                        ["0x164"] = 1,
+                        ["0x158"] = 1,
+                        ["0x120"] = 0,
+                        ["0x138"] = 0.5,
+                        ["0x15c"] = 1,
+                        ["0x168"] = 0,
+                        ["0x13c"] = 1,
+                        ["0x170"] = 32,
+                        ["0x12c"] = 0,
+                        ["0x124"] = 0,
+                        ["0x118"] = 0,
+                        ["0x128"] = 1
+                    }
+                },
+                ["Texture"] = "zombiearmytrilogy/enemyfx/textures/partclfx"
+            },
+            ["Name"] = "UndeadSS\\Characters\\Undead_Arch_General_Highlight:source_S",
+            ["Index"] = 0
+        }
+    }
+}
