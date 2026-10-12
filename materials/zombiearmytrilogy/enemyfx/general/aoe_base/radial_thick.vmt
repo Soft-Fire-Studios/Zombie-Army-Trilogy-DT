@@ -1,0 +1,11 @@
+UnlitGeneric
+{
+    "$basetexture" "zombiearmytrilogy/enemyfx/textures/pfx_smoke_16flip_v2"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$nocull" "1"
+    "$additive" "0"
+    "$color" "[1 1 1]"
+    "$nolod" "1"
+}

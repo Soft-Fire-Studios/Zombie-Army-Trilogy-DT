@@ -1,0 +1,13 @@
+SpriteCard
+{
+    "$basetexture" "zombiearmytrilogy/firefx/fire_explosion/main_glow"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$nocull" "1"
+    "$additive" "1"
+    "$blendframes" "1"
+    "$overbrightfactor" "2"
+    "$orientation" "0"
+    "$depthblend" "0"
+}

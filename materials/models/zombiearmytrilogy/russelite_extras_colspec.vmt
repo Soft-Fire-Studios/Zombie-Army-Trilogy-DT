@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/elites/russelite_extras_colspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/elites/russelite_extras_norms"
+    "$phong" "1"
+    "$phongexponent" "54.6807611"
+    "$phongboost" "6.82904988"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/elites/russelite_extras_colspec"
+    "$phongexponenttexture" "models/zombiearmytrilogy/exponents/elites/russelite_extras_colspec"
+    "$phongalbedotint" "1"
+    "$envmap" "models/zombiearmytrilogy/cubemaps/elites/cubemap_gold_bars"
+    "$envmaptint" "[1 1 1]"
+    "$envmapfresnel" "0"
+    "$normalmapalphaenvmapmask" "0"
+    "$model" "1"
+}

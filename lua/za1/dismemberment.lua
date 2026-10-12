@@ -98,7 +98,7 @@ function D.Waist(z,info)
     SyncDowned(z)
     return true
 end
-function D.Damage(z,info,tr)
+function D.Damage(z,info,tr,limbDamage)
     if z.ZASpecial or info:GetDamage()<=0 then return end
     local group=tr and tr.HitGroup
     if info:IsExplosionDamage() and info:GetDamage()>=ZA1.Config.Sever.ExplosionDamage then
@@ -106,7 +106,9 @@ function D.Damage(z,info,tr)
         if math.Rand(0,1)<.5 then D.Sever(z,HITGROUP_LEFTARM,info) else D.Sever(z,HITGROUP_RIGHTARM,info) end
     elseif group and A.Parts[group] and (info:IsBulletDamage() or info:IsDamageType(DMG_SLASH)) then
         local damage=z.ZALimbDamage or {};z.ZALimbDamage=damage
-        damage[group]=(damage[group] or 0)+info:GetDamage()
+        -- Part damage and the actor's health resistance are separate, just
+        -- as armor has its own durability. Preserve existing sever thresholds.
+        damage[group]=(damage[group] or 0)+(limbDamage or info:GetDamage())
         if damage[group]>=ZA1.Config.Sever.LimbDamage then D.Sever(z,group,info) end
     end
 end

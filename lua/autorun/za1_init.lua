@@ -12,9 +12,17 @@ for _, prop in ipairs(ZA1.Assets.props) do
 end
 AddCSLuaFile("za1/zombie_settings.lua")
 ZA1.Config = include("za1/zombie_settings.lua")
+include("za1/combat.lua")
 AddCSLuaFile("za1/special_settings.lua")
 AddCSLuaFile("za1/special_assets.lua")
 ZA1.SpecialConfig = include("za1/special_settings.lua")
+AddCSLuaFile("za1/general_assets.lua")
+ZA1.GeneralAssets = include("za1/general_assets.lua")
+AddCSLuaFile("za1/major_settings.lua")
+for kind, settings in pairs(include("za1/major_settings.lua")) do ZA1.SpecialConfig[kind] = settings end
+local majorDirector = ZA1.SpecialConfig.Director
+majorDirector.SniperLimit, majorDirector.MG42Limit, majorDirector.GeneralLimit = 2, 2, 1
+majorDirector.Weights.sniper, majorDirector.Weights.mg42, majorDirector.Weights.general = 2, 1, 1
 ZA1.SpecialAssets = include("za1/special_assets.lua")
 AddCSLuaFile("za1/skeleton_assets.lua")
 ZA1.SkeletonAssets = include("za1/skeleton_assets.lua")
@@ -22,6 +30,16 @@ AddCSLuaFile("za1/heavy_assets.lua")
 ZA1.HeavyAssets = include("za1/heavy_assets.lua")
 ZA1.SpecialAssets.Enemies.heavy = ZA1.HeavyAssets
 for file, duration in pairs(ZA1.HeavyAssets.Durations) do ZA1.SpecialAssets.Durations[file] = duration end
+AddCSLuaFile("za1/elite_assets.lua")
+ZA1.EliteAssets = include("za1/elite_assets.lua")
+for kind, assets in pairs(ZA1.EliteAssets.Enemies) do ZA1.SpecialAssets.Enemies[kind] = assets end
+for file, duration in pairs(ZA1.EliteAssets.Durations) do ZA1.SpecialAssets.Durations[file] = duration end
+AddCSLuaFile("za1/major_elite_assets.lua")
+ZA1.MajorAssets = include("za1/major_elite_assets.lua")
+AddCSLuaFile("za1/general_skull_assets.lua")
+ZA1.MajorAssets.Enemies.general.Skull = include("za1/general_skull_assets.lua")
+for kind, assets in pairs(ZA1.MajorAssets.Enemies) do ZA1.SpecialAssets.Enemies[kind] = assets end
+for file, duration in pairs(ZA1.MajorAssets.Durations) do ZA1.SpecialAssets.Durations[file] = duration end
 AddCSLuaFile("za1/look_assets.lua")
 AddCSLuaFile("za1/revival_assets.lua")
 ZA1.LookAssets = include("za1/look_assets.lua")
@@ -59,6 +77,8 @@ if SERVER then
     include("za1/corpse_charges.lua")
     include("za1/skeleton_armor.lua")
     include("za1/heavy_armor.lua")
+    include("za1/chainsaw_armor.lua")
+    include("za1/major_armor.lua")
     include("za1/specials.lua")
     include("za1/performance.lua")
 else
@@ -77,7 +97,14 @@ else
         za1_shared_routes="1", za1_path_budget="2", za1_path_burst="8",
         za1_specials="1", za1_special_chance=tostring(ZA1.SpecialConfig.Director.Chance),
         za1_skeleton_limit=tostring(ZA1.SpecialConfig.Director.SkeletonLimit), za1_suicide_limit=tostring(ZA1.SpecialConfig.Director.SuicideLimit),
-        za1_heavy_limit=tostring(ZA1.SpecialConfig.Director.HeavyLimit)
+        za1_heavy_limit=tostring(ZA1.SpecialConfig.Director.HeavyLimit),
+        za1_fire_limit=tostring(ZA1.SpecialConfig.Director.FireLimit),
+        za1_burning_limit=tostring(ZA1.SpecialConfig.Director.BurningLimit),
+        za1_chainsaw_limit=tostring(ZA1.SpecialConfig.Director.ChainsawLimit),
+        za1_summoner_limit=tostring(ZA1.SpecialConfig.Director.SummonerLimit),
+        za1_sniper_limit=tostring(ZA1.SpecialConfig.Director.SniperLimit),
+        za1_mg42_limit=tostring(ZA1.SpecialConfig.Director.MG42Limit),
+        za1_general_limit=tostring(ZA1.SpecialConfig.Director.GeneralLimit)
     }
     for name, value in pairs(replicated) do
         CreateConVar(name, value, FCVAR_REPLICATED)
@@ -85,6 +112,17 @@ else
     include("za1/music.lua")
     include("za1/performance_client.lua")
 end
+
+include("za1/fire_vfx.lua")
+include("za1/combat_vfx.lua")
+include("za1/enemy_vfx.lua")
+include("za1/eye_glow.lua")
+include("za1/elites.lua")
+include("za1/major_guns.lua")
+include("za1/mg42.lua")
+include("za1/sniper.lua")
+include("za1/general_orbit.lua")
+include("za1/general.lua")
 
 if CLIENT then
     hook.Add("AddToolMenuCategories", "ZA1/SettingsCategory", function()
@@ -135,6 +173,13 @@ if CLIENT then
             slider("Skeleton limit", "za1_skeleton_limit", 0, 12)
             slider("Suicide Grunt limit", "za1_suicide_limit", 0, 6)
             slider("Armored Heavy limit", "za1_heavy_limit", 0, 6)
+            slider("Fire Demon limit", "za1_fire_limit", 0, 6)
+            slider("Ignited Zombie limit", "za1_burning_limit", 0, 20)
+            slider("Chainsaw Elite limit", "za1_chainsaw_limit", 0, 6)
+            slider("Summoner limit", "za1_summoner_limit", 0, 6)
+            slider("Deadeye Sniper limit", "za1_sniper_limit", 0, 6)
+            slider("MG42 Elite limit", "za1_mg42_limit", 0, 6)
+            slider("Occult General limit", "za1_general_limit", 0, 2)
             panel:Help("Zombie settings (admin only)")
             checkbox("Zombies wander", "za1_wander")
             checkbox("Allow resurrection", "za1_resurrection")

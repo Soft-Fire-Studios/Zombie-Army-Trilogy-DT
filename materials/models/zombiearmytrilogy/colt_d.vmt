@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/major/colt_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/major/colt_n"
+    "$phong" "1"
+    "$phongexponent" "36.944731"
+    "$phongboost" "4.61435589"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/major/colt_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/exponents/major/colt_d"
+    "$phongalbedotint" "1"
+    "$envmap" "models/zombiearmytrilogy/cubemaps/major/desert_chrome_diffuse"
+    "$envmaptint" "[1 1 1]"
+    "$envmapfresnel" "0"
+    "$normalmapalphaenvmapmask" "0"
+    "$model" "1"
+}

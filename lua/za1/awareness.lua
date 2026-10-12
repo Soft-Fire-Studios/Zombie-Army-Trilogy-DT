@@ -8,7 +8,7 @@ local function Weak() return setmetatable({}, {__mode = "k"}) end
 M.Zombies, M.Emitters, M.Hearing, M.Music = Weak(), Weak(), Weak(), Weak()
 M.Grid, M.Buckets, M.Noises, M.Ragdolls, M.Players = {}, {}, {}, {}, {}
 M.Total = 0
-M.SpecialCounts = {skeleton = 0, suicide = 0, heavy = 0}
+M.SpecialCounts = {skeleton = 0, suicide = 0, heavy = 0, fire = 0, burning = 0, chainsaw = 0, summoner = 0, sniper = 0, mg42 = 0, general = 0}
 M.Stats = {hearingTraces = 0, decisions = 0, sightChecks = 0, musicPackets = 0}
 local flags = FCVAR_ARCHIVE + FCVAR_REPLICATED
 M.Wander = CreateConVar("za1_wander", "1", flags, "Allow idle zombie wandering.", 0, 1)
@@ -21,7 +21,7 @@ M.SpawnMinRadius = CreateConVar("za1_director_spawn_min_radius", tostring(ZA1.Co
 M.VisibleCommons = CreateConVar("za1_director_visible_commons", ZA1.Config.Population.VisibleCommonSpawns and "1" or "0", flags, "Allow common zombies to emerge in view; specials still spawn unseen.", 0, 1)
 M.SpawnMode = CreateConVar("za1_director_spawn_mode", "0", flags, "Spawn source: 0 random navmesh, 1 prefer zones with fallback, 2 both, 3 zones only.", 0, 3)
 M.ResurrectionEnabled = CreateConVar("za1_resurrection", "1", flags, "Allow common zombie resurrection; destroyed heads cannot resurrect.", 0, 1)
-M.ResurrectionChance = CreateConVar("za1_resurrection_chance", tostring(ZA1.Config.Recovery.ResurrectionChance*100), flags, "Common resurrection chance in percent, at most once per zombie.", 0, 100)
+M.ResurrectionChance = CreateConVar("za1_resurrection_chance", tostring(ZA1.Config.Recovery.ResurrectionChance*100), flags, "Resurrection chance per fatal common body hit; destroyed heads never revive.", 0, 100)
 M.MantleEnabled = CreateConVar("za1_mantle", "1", flags, "Allow standing zombies to mantle supported obstacles.", 0, 1)
 M.MantleHeight = CreateConVar("za1_mantle_height", tostring(ZA1.Config.Obstacles.MantleMaxHeight), flags, "Maximum mantle height in Source units.", 32, 160)
 M.DropEnabled = CreateConVar("za1_drop", "1", flags, "Allow soldiers and Suicide Grunts to jump into a controlled ragdoll drop.", 0, 1)
@@ -37,11 +37,18 @@ M.Dormancy = CreateConVar("za1_dormancy", "1", flags, "Recycle unseen director z
 M.PathBudget = CreateConVar("za1_path_budget", tostring(ZA1.Config.Navigation.PathBuildsPerTick), flags, "Normal native path builds per server tick, within the time budget.", 1, 8)
 M.PathBurst = CreateConVar("za1_path_burst", tostring(ZA1.Config.Navigation.PathBurstBuildsPerTick), flags, "Maximum native path builds when requests back up, within the same time budget.", 1, 16)
 local specials = ZA1.SpecialConfig and ZA1.SpecialConfig.Director or {Chance = 15, SkeletonLimit = 4, SuicideLimit = 2, HeavyLimit = 2}
-M.SpecialsEnabled = CreateConVar("za1_specials", "1", flags, "Allow director Skeletons and Suicide Grunts.", 0, 1)
+M.SpecialsEnabled = CreateConVar("za1_specials", "1", flags, "Allow director special enemies.", 0, 1)
 M.SpecialChance = CreateConVar("za1_special_chance", tostring(specials.Chance), flags, "Percent of new director spawns selected as specials, within type limits.", 0, 50)
 M.SkeletonLimit = CreateConVar("za1_skeleton_limit", tostring(specials.SkeletonLimit), flags, "Maximum director Skeletons, including reserved recycled actors.", 0, 12)
 M.SuicideLimit = CreateConVar("za1_suicide_limit", tostring(specials.SuicideLimit), flags, "Maximum director Suicide Grunts, including reserved recycled actors.", 0, 6)
 M.HeavyLimit = CreateConVar("za1_heavy_limit", tostring(specials.HeavyLimit), flags, "Maximum director Armored Heavies, including reserved recycled actors.", 0, 6)
+M.FireLimit = CreateConVar("za1_fire_limit", tostring(specials.FireLimit or 1), flags, "Maximum director Fire Demons, including reserved actors.", 0, 6)
+M.BurningLimit = CreateConVar("za1_burning_limit", tostring(specials.BurningLimit or 6), flags, "Maximum director Ignited Zombies; Fire Demon summons use its own minion limit.", 0, 20)
+M.ChainsawLimit = CreateConVar("za1_chainsaw_limit", tostring(specials.ChainsawLimit or 1), flags, "Maximum director Chainsaw Elites, including reserved actors.", 0, 6)
+M.SummonerLimit = CreateConVar("za1_summoner_limit", tostring(specials.SummonerLimit or 1), flags, "Maximum director Summoners, including reserved actors.", 0, 6)
+M.SniperLimit = CreateConVar("za1_sniper_limit", tostring(specials.SniperLimit or 2), flags, "Maximum director Deadeye Snipers, including reserved actors.", 0, 6)
+M.MG42Limit = CreateConVar("za1_mg42_limit", tostring(specials.MG42Limit or 2), flags, "Maximum director MG42 Elites, including reserved actors.", 0, 6)
+M.GeneralLimit = CreateConVar("za1_general_limit", tostring(specials.GeneralLimit or 1), flags, "Maximum director Occult Generals, including reserved actors.", 0, 2)
 util.AddNetworkString("ZA1/Music")
 util.AddNetworkString("ZA1/Setting")
 local settings = {za1_wander={0,1},za1_alert_range={128,1500},za1_population_cap={8,100},za1_director_initial_density={0,100},za1_director_density_per_minute={0,100},za1_director_running={0,1},za1_director_radius={960,8192},za1_recycle_delay={3,60},za1_event_sound_distance={0,4096},za1_ragdoll_lifetime={10,180},za1_ragdoll_cap={0,64},
@@ -49,7 +56,9 @@ local settings = {za1_wander={0,1},za1_alert_range={128,1500},za1_population_cap
     za1_director_spawn_mode={0,3},za1_resurrection={0,1},za1_resurrection_chance={0,100},za1_mantle={0,1},za1_mantle_height={32,160},
     za1_drop={0,1},za1_drop_height={32,138},
     za1_crowd={0,1},za1_shared_routes={0,1},za1_dormancy={0,1},za1_path_budget={1,8},za1_path_burst={1,16},
-    za1_specials={0,1},za1_special_chance={0,50},za1_skeleton_limit={0,12},za1_suicide_limit={0,6},za1_heavy_limit={0,6}}
+    za1_specials={0,1},za1_special_chance={0,50},za1_skeleton_limit={0,12},za1_suicide_limit={0,6},za1_heavy_limit={0,6},
+    za1_fire_limit={0,6},za1_burning_limit={0,20},za1_chainsaw_limit={0,6},za1_summoner_limit={0,6},
+    za1_sniper_limit={0,6},za1_mg42_limit={0,6},za1_general_limit={0,2}}
 net.Receive("ZA1/Setting", function(_, ply)
     if not IsValid(ply) or not ply:IsAdmin() then return end
     local name, value = net.ReadString(), net.ReadFloat()
@@ -253,7 +262,9 @@ function M.PopulationLimit() return math.Clamp(M.Cap:GetInt(), 1, ZA1.Config.Dir
 -- menu requests first; Initialize also guards scripted/duplicator creation.
 local commonClasses = {npc_dt_za1_zombie = true, npc_dt_za1_zombie_camo = true, npc_dt_za1_zombie_camo2 = true,
     npc_dt_za1_skeleton = true, npc_dt_za1_armored_skeleton = true, npc_dt_za1_rotten_skeleton = true,
-    npc_dt_za1_suicide_grunt = true, npc_dt_za1_armored_heavy = true}
+    npc_dt_za1_suicide_grunt = true, npc_dt_za1_armored_heavy = true,
+    npc_dt_za1_fire_demon = true, npc_dt_za1_burning_zombie = true,
+    npc_dt_za1_chainsaw_elite = true, npc_dt_za1_summoner = true}
 hook.Add("PlayerSpawnNPC", "ZA1/SpawnLimit", function(_, class)
     if commonClasses[class] and M.Count() >= ZA1.Config.Director.MaxCommon then return false end
     if class == "sent_za1_director" and IsValid(M.Director) then return false end

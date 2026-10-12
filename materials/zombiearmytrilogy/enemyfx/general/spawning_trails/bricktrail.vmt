@@ -1,0 +1,11 @@
+UnlitGeneric
+{
+    "$basetexture" "zombiearmytrilogy/enemyfx/textures/pfx_explosion_spikes_strip"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$nocull" "1"
+    "$additive" "0"
+    "$color" "[49.9999962 49.9999962 49.9999962]"
+    "$nolod" "1"
+}

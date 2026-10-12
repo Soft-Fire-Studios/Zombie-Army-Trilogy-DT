@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/major/undead_arch_general_skull_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/major/bones_norms"
+    "$phong" "1"
+    "$phongexponent" "40.492584"
+    "$phongboost" "5.05787253"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/major/bones_norms"
+    "$phongexponenttexture" "models/zombiearmytrilogy/exponents/major/bones_norms"
+    "$phongalbedotint" "1"
+    "$detail" "models/zombiearmytrilogy/emission/major/bones_norms"
+    "$detailscale" "1"
+    "$detailblendmode" "5"
+    "$detailblendfactor" "0.00999999978"
+    "$model" "1"
+}

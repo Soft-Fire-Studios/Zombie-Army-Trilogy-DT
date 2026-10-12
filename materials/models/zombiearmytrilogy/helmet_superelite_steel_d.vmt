@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/elites/helmet_superelite_steel_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/elites/germansoldier_dirty_helmet_norms"
+    "$phong" "1"
+    "$phongexponent" "12.8873714"
+    "$phongboost" "1.60952173"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/elites/helmet_superelite_steel_d"
+    "$phongexponenttexture" "models/zombiearmytrilogy/exponents/elites/helmet_superelite_steel_d"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

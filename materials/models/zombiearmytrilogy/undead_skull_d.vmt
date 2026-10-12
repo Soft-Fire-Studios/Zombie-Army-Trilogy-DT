@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/major/undead_skull_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/major/undead_skull_n"
+    "$phong" "1"
+    "$phongexponent" "8.98855937"
+    "$phongboost" "1.12356992"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/major/undead_skull_d"
+    "$envmap" "models/zombiearmytrilogy/cubemaps/major/cubemap_gold_bars"
+    "$envmaptint" "[0.75 0.75 0.75]"
+    "$envmapfresnel" "0"
+    "$normalmapalphaenvmapmask" "0"
+    "$model" "1"
+}

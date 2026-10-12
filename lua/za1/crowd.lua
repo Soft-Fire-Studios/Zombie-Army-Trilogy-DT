@@ -147,7 +147,8 @@ function G.AttackGoal(z, enemy)
         state.position, state.version, state.blocked = Vector(targetPos), state.version + 1, {}
     end
     local claim = own.ZAAttackClaim
-    if claim and (claim.target ~= enemy or state.slots[claim.slot] ~= z) then G.ReleaseClaim(z); claim = nil end
+    if claim and (claim.target ~= enemy or state.slots[claim.slot] ~= z
+        or claim.slot < 1 or claim.slot > C.AttackSlots) then G.ReleaseClaim(z); claim = nil end
     if not claim then
         local best, distance
         for slot = 1, C.AttackSlots do
@@ -177,18 +178,19 @@ function G.AttackGoal(z, enemy)
         claim.expires = now + C.SlotLifetime
         if claim.version ~= state.version and not G.Pending[z] then
             local offset = attackOffsets[claim.slot]
-            if not offset then
-                -- A live settings edit can leave an older claim beyond the
-                -- new slot count; preserve its original angular placement.
-                local angle = (claim.slot - 1) * math.pi * 2 / C.AttackSlots
-                offset = {x = math.cos(angle) * C.AttackRadius, y = math.sin(angle) * C.AttackRadius}
-                attackOffsets[claim.slot] = offset
-            end
             Queue(z, {kind = "slot", priority = 3, claim = claim, version = state.version,
                 position = Vector(targetPos.x + offset.x, targetPos.y + offset.y, targetPos.z)})
         end
         if capture then perf.RecordStage(capture, "crowd:AttackGoal.queue", z, enemy, started); started = SysTime() end
-        if claim.position and claim.version == state.version then return claim.position, true end
+        -- A refresh keeps the same attack reservation. Continue toward its
+        -- last checked point while the replacement probe waits; demoting it
+        -- to the outer waiting ring would stop/restart a retreating chase.
+        -- Failed current probes still release the claim in Process().
+        local pending = G.Pending[z]
+        if claim.position and (claim.version == state.version or pending and pending.kind == "slot"
+            and pending.claim == claim and M.Active(z) and (not enemy.Alive or enemy:Alive())) then
+            return claim.position, true
+        end
     end
     -- Stable outer waiting positions leave the attack ring open.
     local offset = waitingOffsets[ID(z) % 16]
@@ -240,6 +242,7 @@ function G.Recover(z)
     Queue(z, {kind = "recover", priority = 2, position = z:GetPos() + Vector(math.cos(angle), math.sin(angle), 0) * ZA1.Config.Navigation.RecoveryDistance})
 end
 local function Probe(z, job)
+    if job.kind == "slot" and (job.claim.slot < 1 or job.claim.slot > C.AttackSlots) then return end
     local area = N.Area(job.position)
     if not area or area:IsBlocked() or not z.loco:IsAreaTraversable(area) then return end
     local pos = area:GetClosestPointOnArea(job.position)

@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/elites/chainsaw_diffspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/elites/chainsaw_norm"
+    "$phong" "1"
+    "$phongexponent" "11.4041604"
+    "$phongboost" "1.42552005"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/elites/chainsaw_diffspec"
+    "$alphatest" "1"
+    "$alphatestreference" "0.05"
+    "$envmap" "models/zombiearmytrilogy/cubemaps/elites/desert_chrome_diffuse"
+    "$envmaptint" "[0.299999982 0.299999982 0.299999982]"
+    "$envmapfresnel" "0"
+    "$normalmapalphaenvmapmask" "1"
+    "$model" "1"
+}

@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/elites/undead_summoner_lod3_d/undead_summoner_lod3_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/elites/undead_summoner_lod3_d"
+    "$phong" "1"
+    "$phongexponent" "1e-06"
+    "$phongboost" "0"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/elites/undead_summoner_lod3_d"
+    "$model" "1"
+}

@@ -172,7 +172,15 @@ function P.Capture(z)
         baseIdle=z.ZABaseIdle, baseWalk=z.ZABaseWalk, crawling=z.ZACrawling,
         home = z.ZAHome and Vector(z.ZAHome), investigation = z.ZAInvestigation, wander = z.ZAWanderGoal and Vector(z.ZAWanderGoal),
         wanderUntil = z.ZAWanderUntil, nextWander = z.ZANextWander, navProfile = z.ZANavProfile,
-        armorHealth = armor and armor.Capture(z) or nil}
+        armorHealth = armor and armor.Capture(z) or nil,
+        helmetHealth = not z.ZASpecial and ZA1.Equipment.Capture(z) or nil,
+        painStage = z.ZASawPainStage,
+        gunAmmo = z.ZAGunAmmo, gunChamber = z.ZAGunNeedsChamber,
+        generalPhase = z.ZAGeneralPhase, generalShield = z.ZAGeneralShield,
+        generalArrival = z.ZAGeneralArrival, generalPlayers = z.ZAGeneralPlayers,
+        generalInjured = z.ZAGeneralInjured, generalBreak = z.ZAGeneralBreak,
+        generalSkulls = z.ZAGeneralSkullCount,
+        generalExposure = z.ZAGeneralExposure and math.max(0, z.ZAGeneralExposure - CurTime())}
 end
 function P.Retire(director, z)
     if not director.ZAOwned[z] or P.Protected(z) or #director.ZADormant >= C.MaxDormant then return false end
@@ -211,6 +219,10 @@ function P.Restore(director, record, players)
     for group = 0, z:GetNumBodyGroups()-1 do z:SetBodygroup(group, record.groups[group] or 0) end
     local armor = ZA1.Specials and ZA1.Specials.Armor(z)
     if armor then armor.Restore(z, record.armorHealth) end
+    if not z.ZASpecial then ZA1.Equipment.Restore(z, record.helmetHealth) end
+    z.ZASawPainStage = record.painStage
+    if record.gunAmmo ~= nil then z.ZAGunAmmo, z.ZAGunNeedsChamber = record.gunAmmo, record.gunChamber end
+    if record.generalPhase then ZA1.General.Restore(z, record) end
     if z.ZASpecial then z:ZARefreshHitboxes() else ZA1.Equipment.Refresh(z) end
     z.IdleAnimation, z.WalkAnimation, z.RunAnimation, z.FallAnimation = record.idle, record.walk, record.run or record.walk, record.idle
     z.ZABaseIdle,z.ZABaseWalk=record.baseIdle or record.idle,record.baseWalk or record.walk

@@ -7,11 +7,34 @@ local V = ZA1.SkeletonAssets or include("za1/skeleton_assets.lua")
 local Armor = ZA1.SkeletonArmor or include("za1/skeleton_armor.lua")
 local Heavy = ZA1.HeavyAssets or include("za1/heavy_assets.lua")
 local HeavyArmor = ZA1.HeavyArmor or include("za1/heavy_armor.lua")
+local ChainsawArmor = ZA1.ChainsawArmor or include("za1/chainsaw_armor.lua")
 A.Enemies.heavy = Heavy
 for file, duration in pairs(Heavy.Durations) do A.Durations[file] = duration end
 local skeletonClasses = {}
 for _, variant in ipairs(C.skeleton.Variants) do skeletonClasses[variant.Class] = true end
+local directorTypes = {
+    {Kind = "skeleton", Limit = "SkeletonLimit"},
+    {Kind = "suicide", Class = "npc_dt_za1_suicide_grunt", Limit = "SuicideLimit"},
+    {Kind = "heavy", Class = "npc_dt_za1_armored_heavy", Limit = "HeavyLimit"},
+    {Kind = "fire", Class = "npc_dt_za1_fire_demon", Limit = "FireLimit"},
+    {Kind = "burning", Class = "npc_dt_za1_burning_zombie", Limit = "BurningLimit"},
+    {Kind = "chainsaw", Class = "npc_dt_za1_chainsaw_elite", Limit = "ChainsawLimit"},
+    {Kind = "summoner", Class = "npc_dt_za1_summoner", Limit = "SummonerLimit"},
+    {Kind = "sniper", Class = "npc_dt_za1_deadeye_sniper", Limit = "SniperLimit"},
+    {Kind = "mg42", Class = "npc_dt_za1_mg42_elite", Limit = "MG42Limit"},
+    {Kind = "general", Class = "npc_dt_za1_occult_general", Limit = "GeneralLimit"}
+}
+local classKinds = {}
+for _, entry in ipairs(directorTypes) do if entry.Class then classKinds[entry.Class] = entry.Kind end end
+for class in pairs(skeletonClasses) do classKinds[class] = "skeleton" end
 local function Pick(pool) return pool[math.random(#pool)] end
+local function Visual(z, role, position)
+    if ZA1.EnemyVFX then ZA1.EnemyVFX.Pulse(z, role, position) end
+end
+function S.IsVocal(name)
+    name = name:lower()
+    return name:find("vox", 1, true) or name:find("voc_", 1, true) or name:find("vocal", 1, true)
+end
 -- Reuse the common soldier's complete severed limbs, at their attaching joints.
 local sever = include("za1/dismemberment_assets.lua").Parts
 S.SuicideGibs = {sever[HITGROUP_LEFTARM], sever[HITGROUP_RIGHTARM], sever[HITGROUP_LEFTLEG], sever[HITGROUP_RIGHTLEG]}
@@ -20,24 +43,34 @@ for _, piece in ipairs(A.Enemies.suicide.Breakup) do
 end
 
 function S.Emerge(class)
-    return skeletonClasses[class] and C.skeleton.Emerge
-        or class == "npc_dt_za1_suicide_grunt" and C.suicide.Emerge
-        or class == "npc_dt_za1_armored_heavy" and C.heavy.Emerge
+    local settings = C[classKinds[class]]
+    return settings and settings.Emerge
         or ZA1.Config.Animations.Emerge[math.random(#ZA1.Config.Animations.Emerge)]
 end
 
 function S.SelectClass(director)
     if not M.SpecialsEnabled:GetBool() or math.random(100) > M.SpecialChance:GetInt() then return "npc_dt_za1_zombie" end
-    local counts = {skeleton = M.SpecialCounts.skeleton, suicide = M.SpecialCounts.suicide, heavy = M.SpecialCounts.heavy or 0}
+    local counts = {}
+    for _, entry in ipairs(directorTypes) do counts[entry.Kind] = M.SpecialCounts[entry.Kind] or 0 end
     for _, record in ipairs(director.ZADormant) do
-        if skeletonClasses[record.class] then counts.skeleton = counts.skeleton + 1
-        elseif record.class == "npc_dt_za1_suicide_grunt" then counts.suicide = counts.suicide + 1
-        elseif record.class == "npc_dt_za1_armored_heavy" then counts.heavy = counts.heavy + 1 end
+        local kind = classKinds[record.class]
+        if kind then counts[kind] = counts[kind] + 1 end
     end
-    local skeleton, suicide = counts.skeleton < M.SkeletonLimit:GetInt(), counts.suicide < M.SuicideLimit:GetInt()
-    local heavy = counts.heavy < M.HeavyLimit:GetInt()
-    if heavy and (not skeleton and not suicide or math.random(4) == 1) then return "npc_dt_za1_armored_heavy" end
-    if skeleton and (not suicide or math.random(3) <= 2) then
+    local weights, total = C.Director.Weights or {skeleton = 6, suicide = 3, heavy = 3}, 0
+    local candidates = {}
+    for _, entry in ipairs(directorTypes) do
+        local limit, weight = M[entry.Limit], weights[entry.Kind] or 0
+        if limit and counts[entry.Kind] < limit:GetInt() and weight > 0 then
+            total = total + weight; candidates[#candidates + 1] = {Entry = entry, Weight = weight}
+        end
+    end
+    if total == 0 then return "npc_dt_za1_zombie" end
+    local choice, selected = math.random(total)
+    for _, candidate in ipairs(candidates) do
+        choice = choice - candidate.Weight
+        if choice <= 0 then selected = candidate.Entry; break end
+    end
+    if selected.Kind == "skeleton" then
         local total = 0
         for _, variant in ipairs(C.skeleton.Variants) do total = total + variant.Weight end
         local choice = math.random(total)
@@ -46,8 +79,7 @@ function S.SelectClass(director)
             if choice <= 0 then return variant.Class end
         end
     end
-    if suicide then return "npc_dt_za1_suicide_grunt" end
-    return "npc_dt_za1_zombie"
+    return selected.Class
 end
 
 local function SkeletonAppearance(z)
@@ -62,7 +94,8 @@ function S.EquipmentPieces(z)
 end
 
 function S.Armor(z)
-    return z.ZASpecial == "skeleton" and Armor or z.ZASpecial == "heavy" and HeavyArmor or nil
+    return z.ZASpecial == "skeleton" and Armor or z.ZASpecial == "heavy" and HeavyArmor
+        or z.ZASpecial == "chainsaw" and ChainsawArmor or z.ZASpecial == "mg42" and ZA1.MG42Armor or nil
 end
 
 function S.Sound(z, role, level, voice)
@@ -76,6 +109,8 @@ end
 
 function S.StopVoice(z)
     if z.ZASpecialVoice then z:StopSound(z.ZASpecialVoice); z.ZASpecialVoice = nil end
+    if z.ZADialogueSound then z:StopSound(z.ZADialogueSound); z.ZADialogueSound = nil end
+    z.ZADialogueUntil = 0
     z.ZAVocalUntil = 0
 end
 
@@ -103,8 +138,22 @@ function S.RefreshHitboxes(z)
         end
     end
     local scale = z:GetModelScale()
+    local assets = z.ZASpecialAssets
+    local hull = assets.StaticCollisionBounds
+    if hull and scale ~= z.ZASpecialScale then
+        -- The General's bones float above a stationary floor-level origin.
+        -- Anchor that origin before replacing DT's ground-level physics box.
+        z:SetMoveType(MOVETYPE_NONE)
+        z:SetCollisionBounds(Vector(unpack(hull.Min)) * scale, Vector(unpack(hull.Max)) * scale)
+        z:PhysicsInitShadow(false, false)
+    end
     -- Cover authored action poses without rebuilding animated bounds in Think.
-    z:SetSurroundingBounds(Vector(-66, -62, -90) * scale, Vector(70, 55, 146) * scale)
+    local bounds = assets.SurroundingBounds
+    if bounds then
+        z:SetSurroundingBounds(Vector(unpack(bounds.Min)) * scale, Vector(unpack(bounds.Max)) * scale)
+    else
+        z:SetSurroundingBounds(Vector(-66, -62, -90) * scale, Vector(70, 55, 146) * scale)
+    end
     z.ZASpecialScale = scale
 end
 
@@ -131,7 +180,21 @@ function S.Initialize(z)
                 break
             end
         end
+    elseif z.ZASpecial == "chainsaw" then
+        ChainsawArmor.Initialize(z, {Helmet = 1})
+        local layout = z.ZASpecialAssets.HeadLayout
+        z.ZAHeadLayout = {Group = layout.Group, Destroyed = layout.Destroyed,
+            HatGroup = layout.HatGroup, HatHidden = layout.HatHidden, Bodygroups = layout.Bodygroups,
+            Hat = Heavy.Pieces.heavyarmour_mask_120}
+    elseif z.ZASpecial == "mg42" then
+        ZA1.MG42Armor.Initialize(z, {Helmet = 1})
+        local layout, pieces = z.ZASpecialAssets.HeadLayout, z.ZASpecialAssets.ArmorPieces
+        local hat = z.ZASpecialAssets.Armor[1].States[1][1]
+        z.ZAHeadLayout = {Group = layout.Group, Destroyed = layout.Destroyed,
+            HatGroup = layout.HatGroup, HatHidden = layout.HatHidden, Bodygroups = layout.Bodygroups, Hat = pieces[hat]}
     end
+    local weapon = z.ZASpecialAssets.Weapon
+    if weapon then z:SetBodygroup(weapon.Group, weapon.Visible) end
     z.RunAnimation = settings.Run and Pick(settings.Run) or z.WalkAnimation
     z.FallAnimation, z.MeleeAnimations = z.IdleAnimation, settings.Melee
     z.ZATurnAnimations, z.ZALungeClips = settings.Turn, z.ZASpecialAssets.Lunge
@@ -154,6 +217,12 @@ function S.Initialize(z)
     z.ZANavProfile = N.Profile(z)
     S.RefreshHitboxes(z); z.ZANextSpecialBounds = CurTime() + z:EntIndex() % 16 / 16
     M.Register(z)
+    if z.ZASpecial == "skeleton" and z.ZAWeakpointBone and not z.ZAHeartVFXReady then
+        -- Native 7A4A20 creates this burst on the heart's inactive->active
+        -- transition. Readied Source weakpoint registration is our spawn cue.
+        z.ZAHeartVFXReady = true
+        if ZA1.EnemyVFX then ZA1.EnemyVFX.Activate(z, "heart_activate") end
+    end
 end
 
 function S.Tick(z)
@@ -175,7 +244,9 @@ end
 
 function S.Trace(z, info, dir, tr)
     if not tr or not info:IsBulletDamage() or not tr.StartPos then return end
-    if z.ZASpecial == "heavy" then
+    if z.ZASpecial == "heavy" or z.ZASpecial == "chainsaw" or z.ZASpecial == "mg42" then
+        local armor = S.Armor(z)
+        local armorGroup = z.ZASpecial == "heavy" and Heavy.ArmorGroup or HITGROUP_GEAR
         local scale = z:GetModelScale()
         local direction = dir:GetNormalized() * ((tr.HitPos - tr.StartPos):Length() + 128 * scale)
         local matrices = {}
@@ -185,17 +256,20 @@ function S.Trace(z, info, dir, tr)
         end
         tr.ZASourceGroup = tr.ZASourceGroup or tr.HitGroup
         tr.HitGroup, tr.ZAArmorPart, tr.ZAArmorName, tr.ZAArmorMiss = tr.ZASourceGroup, nil, nil, nil
+        tr.ZARearWeakpoint = nil
         tr.ZAShotDirection = dir
-        local group, body, bodyDistance = HeavyArmor.BodyGroup(z, tr.StartPos, direction, Matrix)
-        local pos, distance, part, piece = HeavyArmor.Trace(z, tr.StartPos, direction, Matrix)
+        local group, body, bodyDistance = armor.BodyGroup(z, tr.StartPos, direction, Matrix)
+        local pos, distance, part, piece = armor.Trace(z, tr.StartPos, direction, Matrix)
         -- Rear flesh can be in front of the chest plate along this shot. Only
         -- the first physical surface absorbs it; armor behind flesh does not.
         if pos and (not bodyDistance or math.sqrt(distance) <= math.sqrt(bodyDistance) + 0.5 * scale) then
-            tr.HitGroup, tr.HitPos, tr.ZAArmorPart, tr.ZAArmorName = Heavy.ArmorGroup, pos, part, piece
+            tr.HitGroup, tr.HitPos, tr.ZAArmorPart, tr.ZAArmorName = armorGroup, pos, part, piece
             info:SetDamagePosition(pos)
         elseif body then
             tr.HitGroup, tr.HitPos = group, body; info:SetDamagePosition(body)
-        elseif tr.HitGroup == Heavy.ArmorGroup then
+            tr.ZARearWeakpoint = z.ZASpecial == "heavy" and dir:Dot(z:GetForward()) > 0
+                and (group == HITGROUP_CHEST or group == HITGROUP_STOMACH)
+        elseif tr.HitGroup == armorGroup then
             -- An expanded armor registration box can cover empty space after
             -- its plate is removed. Do not let that turn into a phantom hit.
             tr.ZAArmorMiss = true
@@ -204,6 +278,7 @@ function S.Trace(z, info, dir, tr)
     end
     local weak = z.ZASpecialAssets.Weakpoint
     local armored = z.ZASpecial == "skeleton" and Armor.HasArmor(z)
+    if not weak then return end
     if tr.HitGroup == weak.Group and not armored and not tr.ZAArmorPart then return end
     -- Anatomy boxes can cover an organ or carried explosive. Recheck the same
     -- shot against the bone-local bounds; world occlusion already chose z.
@@ -258,27 +333,40 @@ function S.Wounded(z, info, tr)
     if IsValid(attacker) and z:IsHatedEntity(attacker) then
         z:DetectEntity(attacker); M.Investigate(z, attacker:GetPos(), ZA1.Config.Navigation.MemoryDuration); M.Alert(z, attacker:GetPos())
     end
+    local armor = S.Armor(z)
+    if armor and info:IsBulletDamage() and tr then
+        if tr.ZAArmorPart and not armor.IsWorn(z, tr) and tr.ZAShotDirection then S.Trace(z, info, tr.ZAShotDirection, tr) end
+        if tr.ZAArmorMiss then info:SetDamage(0); return end
+        if armor.Hit(z, info, tr) then return end
+    end
+    if z.ZASpecial == "mg42" and info:IsBulletDamage() and tr and tr.HitGroup ~= HITGROUP_HEAD then
+        -- The native body-damage definition owns this dust, independently of
+        -- health loss. Helmet contacts were already handled by the armor path.
+        Visual(z, "body_hit", tr.HitPos)
+    end
+    -- Detonation is an explicit lethal action, not incoming blast damage.
+    -- Its new blast resistance must not leave a living, already-armed actor.
+    if z.ZASpecial == "suicide" and z.ZAExplodeOnDeath and info:IsExplosionDamage() then
+        info:SetDamage(z:Health()); return
+    end
+    ZA1.Combat.Apply(z, info, tr)
+    if info:GetDamage() <= 0 then return end
     if z.ZASpecial == "heavy" then
         z.ZAHeavyLastTrace = tr
         if info:IsBulletDamage() and tr then
-            if tr.ZAArmorPart and not HeavyArmor.IsWorn(z, tr) and tr.ZAShotDirection then S.Trace(z, info, tr.ZAShotDirection, tr) end
-            if tr.ZAArmorMiss then info:SetDamage(0); return end
-            if HeavyArmor.Hit(z, info, tr) then return end
             if tr.HitGroup == HITGROUP_HEAD then
-                info:ScaleDamage(z.ZASpecialSettings.HeadDamageScale)
                 ZA1.Gore.HeadHit(z, info, info:GetDamage() >= z:Health())
             end
         end
     elseif z.ZASpecial == "skeleton" then
         if info:IsBulletDamage() then
-            -- A queued trace may refer to a plate removed by an earlier pellet.
-            if tr and tr.ZAArmorPart and not Armor.IsWorn(z, tr) and tr.ZAShotDirection then
-                S.Trace(z, info, tr.ZAShotDirection, tr)
-            end
-            if Armor.Hit(z, info, tr) then return end
             if tr and tr.HitGroup == z.ZASpecialAssets.Weakpoint.Group then
+                Visual(z, "heart_hit")
                 z.ZAHeartPopped = true; info:SetDamage(z:Health())
-            else info:SetDamage(0) end
+            else
+                if tr then Visual(z, "bone_hit", tr.HitPos) end
+                info:SetDamage(0)
+            end
         elseif info:IsDamageType(DMG_CLUB) or info:IsDamageType(DMG_SLASH)
             or info:IsExplosionDamage() and info:GetDamage() >= z.ZASpecialSettings.ExplosionKillDamage then
             info:SetDamage(z:Health())
@@ -288,8 +376,10 @@ function S.Wounded(z, info, tr)
         -- reenters OnInjured and can create a second death thread/ragdoll.
         z.ZAExplodeOnDeath = true; info:SetDamage(z:Health())
         z.ZAShotExplosionPos = tr.HitPos
-    elseif tr and tr.HitGroup == HITGROUP_HEAD then
-        info:ScaleDamage(2)
+        z.ZAShotExplosive = tr.ZAExplosiveName
+    elseif tr and tr.HitGroup == HITGROUP_HEAD and info:IsBulletDamage() then
+        if z.ZASpecial == "summoner" then info:SetDamage(z:Health()) end
+        if z.ZASpecial == "sniper" then Visual(z, "headshot", tr.HitPos) end
         ZA1.Gore.HeadHit(z, info, info:GetDamage() >= z:Health())
     end
 end
@@ -331,10 +421,9 @@ function S.Breakup(z, info)
     end
     ZA1.Debris.Breakup(pieces, z:GetPos(), z:GetModelScale())
     if z.ZASpecial=="suicide" then ZA1.Feedback.FullGib(z) end
-    if z.ZAHeartPopped then
-        local data = EffectData(); data:SetOrigin(info:GetDamagePosition()); data:SetScale(0.5)
-        util.Effect("cball_explode", data, true, true)
-    end
+    -- Existing physical fragments remain authoritative. The native particle
+    -- family adds presentation; it neither creates another corpse nor damage.
+    if z.ZASpecial == "skeleton" then Visual(z, "red_mist") end
     z:SetNoDraw(true)
 end
 
@@ -349,7 +438,7 @@ local function Explosion(z, info)
     local attacker, inflictor = info:GetAttacker(), info:GetInflictor()
     attacker = IsValid(attacker) and attacker or z
     inflictor = IsValid(inflictor) and inflictor or z
-    ZA1.Feedback.Explosion(pos)
+    ZA1.Feedback.Explosion(pos,z.ZAShotExplosive)
     local settings = z.ZASpecialSettings
     if ZA1.Doors then ZA1.Doors.Blast(z, pos, settings.BlastRadius * z:GetModelScale(), settings.BlastDamage) end
     util.BlastDamage(inflictor, attacker, pos, settings.BlastRadius * z:GetModelScale(), settings.BlastDamage)
@@ -431,7 +520,11 @@ function S.Event(z, event, time, cycle, typ, options)
             if CurTime() < (z[finish] or 0) then return true end
             z:EmitSound(file, 60, 100, gain * z.BreathVolume, exhale and CHAN_ITEM or CHAN_BODY)
             z[finish] = CurTime() + A.Durations[file]; z[exhale and "ZABreathOutSound" or "ZABreathInSound"] = file
-        elseif name:find("Vox", 1, true) then
+        elseif binding.Voice then
+            if CurTime() < (z.ZADialogueUntil or 0) then return true end
+            z:EmitSound(file, 70, 100, gain * z.VocalVolume, CHAN_VOICE)
+            z.ZADialogueUntil, z.ZADialogueSound = CurTime() + A.Durations[file] + .02, file
+        elseif S.IsVocal(name) then
             local final = name == "Suicide_Vox_Final_Scream"
             if not final and CurTime() < (z.ZAVocalUntil or 0) then return true end
             local policy = ZA1.Config.Audio.VocalEvents[name]
@@ -439,7 +532,7 @@ function S.Event(z, event, time, cycle, typ, options)
                 if CurTime() < (z.ZANextEventVocal or 0) or math.Rand(0, 1) >= policy.Chance then return true end
                 z.ZANextEventVocal = CurTime() + math.Rand(policy.MinDelay, policy.MaxDelay)
             end
-            z:EmitSound(file, final and 85 or 70, 100, gain * z.VocalVolume, CHAN_VOICE)
+            z:EmitSound(file, final and 85 or 70, 100, gain * z.VocalVolume, z.ZASpecial == "general" and CHAN_BODY or CHAN_VOICE)
             z.ZAVocalUntil, z.ZASpecialVoice = CurTime() + A.Durations[file] + 0.02, file
         else z:EmitSound(file, 65, 100, gain, CHAN_AUTO) end
         return true
@@ -452,7 +545,8 @@ function S.Event(z, event, time, cycle, typ, options)
         or z.ZALastMeleeEvent and cycle <= z.ZALastMeleeEvent then return end
     z.ZALastMeleeEvent = cycle
     local melee = ZA1.Config.Melee
-    local tr = util.TraceHull({start = z:WorldSpaceCenter(), endpos = z:WorldSpaceCenter() + z:GetForward() * melee.Range,
+    local range = z.ZASpecial == "fire" and z.ZASpecialSettings.MeleeHitRange * z:GetModelScale() or melee.Range
+    local tr = util.TraceHull({start = z:WorldSpaceCenter(), endpos = z:WorldSpaceCenter() + z:GetForward() * range,
         mins = Vector(-melee.HullWidth, -melee.HullWidth, -melee.HullHeight),
         maxs = Vector(melee.HullWidth, melee.HullWidth, melee.HullHeight), mask = MASK_SHOT_HULL, filter = z})
     local victim = tr.Entity
@@ -461,7 +555,7 @@ function S.Event(z, event, time, cycle, typ, options)
         local actor = victim:GetActor()
         if IsValid(actor) then victim = actor end
     end
-    if z:ZACanMelee(victim) then
+    if z:ZACanMelee(victim, range) then
         local damage = DamageInfo(); damage:SetAttacker(z); damage:SetInflictor(z)
         damage:SetDamage(z.ZASpecialSettings.MeleeDamage); damage:SetDamageType(DMG_SLASH)
         damage:SetDamagePosition(tr.HitPos); damage:SetDamageForce(z:GetForward() * 3000); victim:TakeDamageInfo(damage)
@@ -471,6 +565,12 @@ end
 function S.Died(z, info)
     if z.ZADeathHandled then return end
     z.ZADeathHandled = true; S.StopVoice(z)
+    if ZA1.EnemyVFX then
+        -- This port's normal lethal death is the explicit presentation cue for
+        -- the original overload resource; the game's Finished branch is disabled.
+        if z.ZASpecial == "summoner" then Visual(z, "overload") end
+        ZA1.EnemyVFX.SetState(z, "dead")
+    end
     local gib=z.ZASpecial=="skeleton" or z.ZASpecial=="suicide" and (z.ZAFuse or z.ZAExplodeOnDeath or info:IsExplosionDamage())
     ZA1.Recovery.Clear(z,not gib)
     if z.ZASpecial=="suicide" and IsValid(z.ZAExistingCorpse) then ZA1.CorpseCharges.Register(z,z.ZAExistingCorpse) end
@@ -478,7 +578,7 @@ function S.Died(z, info)
     if z.ZABreathOutSound then z:StopSound(z.ZABreathOutSound) end
     if z.ZASpecial == "skeleton" then S.Sound(z, "death", 80, true); S.Breakup(z, info)
     elseif z.ZASpecial == "heavy" then z.ZADeathVoicePending = true
-    elseif z.ZAFuse or z.ZAExplodeOnDeath then S.Breakup(z, info); Explosion(z, info)
-    elseif info:IsExplosionDamage() then S.Breakup(z, info) end
+    elseif z.ZASpecial == "suicide" and (z.ZAFuse or z.ZAExplodeOnDeath) then S.Breakup(z, info); Explosion(z, info)
+    elseif z.ZASpecial == "suicide" and info:IsExplosionDamage() then S.Breakup(z, info) end
     M.Killed(z)
 end

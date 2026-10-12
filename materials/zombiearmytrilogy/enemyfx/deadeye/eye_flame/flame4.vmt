@@ -1,0 +1,11 @@
+UnlitGeneric
+{
+    "$basetexture" "zombiearmytrilogy/firefx/textures/pfx_smoke_wispy2"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$nocull" "1"
+    "$additive" "0"
+    "$color" "[4.97916222 4.97916222 4.97916222]"
+    "$nolod" "1"
+}

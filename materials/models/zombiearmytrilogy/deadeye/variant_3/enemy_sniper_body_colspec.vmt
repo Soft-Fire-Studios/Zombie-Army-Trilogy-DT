@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/major/enemy_sniper_body_colspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/major/enemy_sniper_body_norms"
+    "$phong" "1"
+    "$phongexponent" "16.1414266"
+    "$phongboost" "2.01606868"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/major/enemy_sniper_body_colspec"
+    "$phongexponenttexture" "models/zombiearmytrilogy/exponents/major/deadeye/variant_3/enemy_sniper_body_colspec"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

@@ -38,7 +38,10 @@ end
 if SERVER then return end
 
 function P.Update(z)
-    if z:IsDormant() then return end
+    if z:IsDormant() then
+        if ZA1.EnemyVFX then ZA1.EnemyVFX.Update(z) end
+        return
+    end
     if not z.ZASpecial and z:GetHitboxSet()~=z:GetZAHurtSet() then z:SetHitboxSet(z:GetZAHurtSet()) end
     local now = CurTime()
     if now >= (z.ZANextModelCheck or 0) then
@@ -67,6 +70,7 @@ function P.Update(z)
         rate = rate + (z:GetZAGaitRate() - rate) * math.min(dt / .1, 1)
         z.ZAClientGaitRate = rate; z:SetPlaybackRate(rate)
     else z.ZAClientGaitRate = nil end
+    if ZA1.EnemyVFX then ZA1.EnemyVFX.Update(z) end
 end
 concommand.Add("za1_mp_report", function()
     for _, z in ipairs(ents.GetAll()) do

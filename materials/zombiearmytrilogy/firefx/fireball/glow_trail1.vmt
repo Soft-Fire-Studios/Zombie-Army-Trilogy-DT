@@ -1,0 +1,11 @@
+UnlitGeneric
+{
+    "$basetexture" "zombiearmytrilogy/firefx/textures/axetrail"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$nocull" "1"
+    "$additive" "1"
+    "$color" "[79.372551 79.372551 79.372551]"
+    "$nolod" "1"
+}

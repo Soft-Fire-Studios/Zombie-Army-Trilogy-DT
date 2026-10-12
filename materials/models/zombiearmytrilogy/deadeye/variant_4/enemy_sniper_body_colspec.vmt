@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/major/deadeye/variant_4/enemy_sniper_body_colspec"
+    "$model" "1"
+}

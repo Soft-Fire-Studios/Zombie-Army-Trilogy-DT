@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/elites/chainsaw/variant_2/undead_superelite_bodycol"
+    "$bumpmap" "models/zombiearmytrilogy/textures/elites/chainsaw/variant_2/gerelite_body_norms"
+    "$phong" "1"
+    "$phongexponent" "53.6458174"
+    "$phongboost" "6.70083963"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/elites/undead_superelite_bodycol"
+    "$phongexponenttexture" "models/zombiearmytrilogy/exponents/elites/chainsaw/variant_2/undead_superelite_bodycol"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

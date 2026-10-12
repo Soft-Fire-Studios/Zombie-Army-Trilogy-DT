@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/major/deadeye/lod1/g43_d"
+    "$bumpmap" "models/zombiearmytrilogy/textures/major/deadeye/lod1/g43_n"
+    "$phong" "1"
+    "$phongexponent" "1e-06"
+    "$phongboost" "0"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/major/g43_d"
+    "$model" "1"
+}

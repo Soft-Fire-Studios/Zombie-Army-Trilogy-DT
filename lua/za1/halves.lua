@@ -84,7 +84,10 @@ function H.Corpse(z, info)
     if not ZA1.Dismemberment.IsWaist(z) then return false end
     if info and info:IsDamageType(DMG_REMOVENORAGDOLL) then z:Remove(); return true end
     local rag = H.Create(z, "upper", info)
-    if IsValid(rag) then cleanup.ReplaceEntity(z, rag); undo.ReplaceEntity(z, rag) end
+    if IsValid(rag) then
+        ZA1.Recovery.Remember(z, rag)
+        cleanup.ReplaceEntity(z, rag); undo.ReplaceEntity(z, rag)
+    end
     z:Remove()
     return true
 end

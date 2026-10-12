@@ -3,6 +3,9 @@ local R={active=0};ZA1.Recovery=R
 if CLIENT then return end
 local C=ZA1.Config.Recovery
 local A=ZA1.RevivalAssets
+function R.HasHead(z)
+    return not z.ZAHeadDestroyed and (z.ZASpecial~=nil or z:GetBodygroup(1)~=9)
+end
 local function Refresh(z,rag)
     if z.ZASpecial then
         rag.ZASpecial,rag.ZASpecialAssets=z.ZASpecial,z.ZASpecialAssets
@@ -22,7 +25,7 @@ function R.Clear(z,keepCorpse)
     local state=z.ZADowned
     if not state then return end
     z.ZADowned=nil;R.active=math.max(0,R.active-1)
-    if state.resurrection then
+    if state.resurrection and (not state.gettingUp or not z:Alive() or z.ZAHeadDestroyed) then
         net.Start("ZA1/ResurrectionStop");net.WriteEntity(z);net.Broadcast()
     end
     BodySolid(z,true)
@@ -32,7 +35,7 @@ function R.Clear(z,keepCorpse)
             z:DontDeleteOnRemove(state.rag);state.rag:SetOwner(NULL)
             for group=0,z:GetNumBodyGroups()-1 do state.rag:SetBodygroup(group,z:GetBodygroup(group)) end
             Refresh(z,state.rag)
-            ZA1.Gore.Ragdoll(z,state.rag);ZA1.Manager.Ragdoll(state.rag)
+            ZA1.Gore.Ragdoll(z,state.rag);R.Remember(z,state.rag);ZA1.Manager.Ragdoll(state.rag)
             z.ZAExistingCorpse=state.rag
         else Finish(state.rag) end
     end
@@ -41,7 +44,8 @@ function R.Request(z,info,resurrection,limbFall,drop)
     local traversal=ZA1.Traversal
     local reserved=drop and traversal and traversal.DropSlots[z]
     local occupied=R.active+(traversal and traversal.DropCount or 0)
-    if z.ZADowned or z.ZAHeadDestroyed or z:IsPossessed() and not limbFall or z.ZAActing and not limbFall and not drop or z.__DT_PhysgunPickup
+    if z.ZADowned or not R.HasHead(z) or z:IsPossessed() and not limbFall and not resurrection
+        or z.ZAActing and not limbFall and not drop and not resurrection or z.__DT_PhysgunPickup
         or occupied>=C.MaxActiveRagdolls and not limbFall and not reserved then return false end
     local state={started=CurTime(),resurrection=resurrection,force=Vector(info:GetDamageForce()),velocity=Vector(z:GetVelocity()),
         wait=resurrection and C.ResurrectionDelay or math.Rand(C.MinDownTime,C.MaxDownTime),limbFall=limbFall,
@@ -70,15 +74,47 @@ function R.Drop(z,velocity,landing)
     return true
 end
 function R.Damage(z,info)
-    if z.ZADowned or z.ZAHeadDestroyed then return end
+    if z.ZADowned or not R.HasHead(z) then return end
     local fatal=info:GetDamage()>=z:Health()
     local manager=ZA1.Manager
     local chance=manager.ResurrectionChance:GetFloat()/100
-    if fatal and manager.ResurrectionEnabled:GetBool() and (z.ZAResurrections or 0)<C.MaxResurrections and math.Rand(0,1)<chance then
+    if fatal and manager.ResurrectionEnabled:GetBool() and math.Rand(0,1)<chance then
         if R.Request(z,info,true) then info:SetDamage(math.max(0,z:Health()-1)) end
     elseif not fatal and info:IsExplosionDamage() and info:GetDamage()>=C.MinExplosionDamage then
         R.Request(z,info,false)
     end
+end
+-- Retained headed common corpses can be claimed by a Summoner. No extra
+-- corpse scan or Think callback is needed; the director already keeps this list.
+function R.Remember(z,rag)
+    if z.ZASpecial or not R.HasHead(z) then return end
+    local groups={}
+    for group=0,z:GetNumBodyGroups()-1 do groups[group]=z:GetBodygroup(group) end
+    rag.ZARevive={Class=z:GetClass(),Skin=z:GetSkin(),Scale=z:GetModelScale(),Groups=groups,
+        Resurrections=z.ZAResurrections or 0, Helmet=ZA1.Equipment.Capture(z)}
+end
+function R.Reanimate(z,rag)
+    local saved=IsValid(rag) and rag.ZARevive
+    if not saved or not R.HasHead(rag) or saved.Groups[1]==9
+        or not ZA1.Manager.ResurrectionEnabled:GetBool() then return false end
+    local info=DamageInfo();info:SetDamage(0);info:SetDamageForce(vector_origin)
+    if not R.Request(z,info,true) then return false end
+    z.ZAResurrections=saved.Resurrections+1
+    z:SetSkin(saved.Skin);z:SetModelScale(saved.Scale,0)
+    for group,value in pairs(saved.Groups) do z:SetBodygroup(group,value) end
+    ZA1.Dismemberment.Update(z,true)
+    ZA1.Equipment.Restore(z,saved.Helmet)
+    ZA1.Equipment.Refresh(z)
+    local state=z.ZADowned
+    state.rag=rag;state.ragStarted=CurTime();rag.ZARecoveryOwner=z;rag.ZARecoveryInternalRemoval=nil
+    rag.ZARevive,rag.ZAReviveClaim=nil,nil
+    -- Adopt the existing corpse, so its old expiry cannot remove the live actor.
+    for index=#ZA1.Manager.Ragdolls,1,-1 do
+        if ZA1.Manager.Ragdolls[index]==rag then table.remove(ZA1.Manager.Ragdolls,index) end
+    end
+    rag:SetOwner(z);z:DeleteOnRemove(rag)
+    z:SetNoDraw(true);z:DrawShadow(false);BodySolid(z,false)
+    return true
 end
 local function SpawnRagdoll(z,state)
     local rag=ents.Create("prop_ragdoll")
@@ -91,7 +127,7 @@ local function SpawnRagdoll(z,state)
     rag:SetOwner(z);rag:Spawn();rag:Activate();rag:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
     Refresh(z,rag)
     ZA1.Gore.Ragdoll(z,rag)
-    state.rag=rag;rag.ZARecoveryOwner=z;z:DeleteOnRemove(rag)
+    state.rag=rag;state.ragStarted=CurTime();rag.ZARecoveryOwner=z;z:DeleteOnRemove(rag)
     local objects,totalMass={},0
     -- Place every joint before releasing the ragdoll to the physics solver.
     for index=0,rag:GetPhysicsObjectCount()-1 do
@@ -124,12 +160,6 @@ local function SpawnRagdoll(z,state)
     end
     z:SetNoDraw(true);z:DrawShadow(false)
     BodySolid(z,false)
-    if state.resurrection then
-        local ground=util.TraceLine({start=rag:GetPos()+Vector(0,0,24),endpos=rag:GetPos()-Vector(0,0,96),filter={z,rag},mask=MASK_SOLID_BRUSHONLY})
-        if ground.Hit then
-            net.Start("ZA1/Resurrection");net.WriteEntity(z);net.WriteVector(ground.HitPos+ground.HitNormal*.4);net.WriteVector(ground.HitNormal);net.WriteFloat(state.wait+C.MaxDownTimeLimit);net.Broadcast()
-        end
-    end
 end
 function R.Tick(z)
     local state=z.ZADowned
@@ -139,7 +169,8 @@ function R.Tick(z)
     if CurTime()<(state.nextCheck or 0) or state.ready then return end
     state.nextCheck=CurTime()+.2
     z:SetPos(state.rag:GetPos())
-    if CurTime()-state.started<state.wait or z:IsAIDisabled() then return end
+    local elapsed=CurTime()-(state.ragStarted or state.started)
+    if elapsed<state.wait or z:IsAIDisabled() then return end
     local physics=state.rag:GetPhysicsObject()
     local settled=not IsValid(physics) or physics:GetVelocity():LengthSqr()<C.SettleSpeed^2
     if state.drop then
@@ -148,7 +179,7 @@ function R.Tick(z)
         -- The ordinary timeout must not get an airborne actor up in midair.
         if not ground.Hit or ground.HitNormal.z<0.65 or not settled then return end
     end
-    if not settled and CurTime()-state.started<C.MaxDownTimeLimit then return end
+    if not settled and elapsed<C.MaxDownTimeLimit then return end
     state.ready=true
 end
 function R.GetUp(z)
@@ -174,11 +205,22 @@ function R.GetUp(z)
     local start=matrix:GetTranslation()-offset
     local ground=ZA1.Population.ClearGround(start,{z,rag})
     if not ground then
-        state.retries=(state.retries or 0)+1;state.ready=false;state.started=CurTime()-state.wait+1
+        state.retries=(state.retries or 0)+1;state.ready=false;state.ragStarted=CurTime()-state.wait+1
         if state.retries>=C.GroundRetries then R.Clear(z,true);z:Remove() end
         return
     end
     z:SetPos(ground);z:SetAngles(angles)
+    if state.resurrection then
+        -- Death impulses can move a corpse far from its creation origin.
+        -- Begin the ritual only after the delay/settling and a successful
+        -- pelvis-based placement, using this exact get-up location.
+        local duration=0
+        for _,part in ipairs(A.parts[sequence] or {sequence}) do
+            local id=z:LookupSequence(part)
+            if id>=0 then duration=duration+z:SequenceDuration(id) end
+        end
+        ZA1.ResurrectionFX.Spawn(z,ground,Vector(0,0,1),duration)
+    end
     z:SetNoDraw(false);z:DrawShadow(true)
     BodySolid(z,true)
     Finish(rag);state.rag=nil;state.gettingUp=true

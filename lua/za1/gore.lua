@@ -25,7 +25,7 @@ function F.HeadHit(z,info,fatal)
     if fatal then
         local layout=z.ZAHeadLayout
         if layout then
-            if z:GetBodygroup(layout.HatGroup)~=layout.HatHidden then
+            if layout.Hat and z:GetBodygroup(layout.HatGroup)~=layout.HatHidden then
                 local hat=layout.Hat;local bone=z:LookupBone(hat.Bone);local matrix=bone and z:GetBoneMatrix(bone)
                 if matrix then
                     local pos,ang=LocalToWorld(Vector(unpack(hat.Offset))*z:GetModelScale(),Angle(unpack(hat.Angles)),matrix:GetTranslation(),matrix:GetAngles())
@@ -60,6 +60,7 @@ end
 function F.Ragdoll(z,rag)
     if ZA1.Dismemberment then ZA1.Dismemberment.Ragdoll(z,rag) end
     rag.ZA1Corpse=true;rag.ZAHeadDestroyed=z.ZAHeadDestroyed
+    if not z.ZASpecial then ZA1.Equipment.Restore(rag,ZA1.Equipment.Capture(z)) end
     if not z.ZAHeadDestroyed or rag.ZAHeadSpurt then return end
     rag.ZAHeadSpurt=true
     -- A hidden head remains part of the constrained ragdoll. Turning off its

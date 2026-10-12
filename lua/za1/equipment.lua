@@ -27,6 +27,7 @@ end)
 
 function E.Refresh(entity)
     local hat,weapon=entity:GetBodygroup(C.HeadwearBodygroup),entity:GetBodygroup(C.WeaponBodygroup)
+    E.Restore(entity, E.Capture(entity))
     local mask=ZA1.Dismemberment and ZA1.Dismemberment.Mask(entity) or 0
     local set=(A.MaskIDs[mask] or 0)*A.HeadwearChoices*A.WeaponChoices+hat*A.WeaponChoices+weapon
     entity:SetHitboxSet(set)
@@ -36,6 +37,16 @@ function E.Refresh(entity)
     local bounds=A.SurroundingBounds;local scale=entity:GetModelScale()
     entity.ZAEquipmentScale=scale
     entity:SetSurroundingBounds(Vector(unpack(bounds.Min))*scale,Vector(unpack(bounds.Max))*scale)
+end
+function E.Capture(z)
+    return {Choice = z.ZAHelmetChoice, Health = z.ZAHelmetHealth}
+end
+function E.Restore(z, saved)
+    local choice = z:GetBodygroup(C.HeadwearBodygroup)
+    local piece = A.Headwear[choice]
+    z.ZAHelmetChoice = choice
+    z.ZAHelmetHealth = piece and piece.Armor and math.Clamp(
+        saved and saved.Choice == choice and saved.Health or C.HelmetHealth, 0, C.HelmetHealth) or nil
 end
 function E.Update(entity)
     -- Property-menu edits need a refresh too. No bone queries or traces here.
@@ -134,12 +145,21 @@ function E.Hit(z,info,tr)
     local group=kind=="hat" and C.HeadwearBodygroup or C.WeaponBodygroup
     if z:GetBodygroup(group)~=choice then return ContinueToBody(z,info,tr) end
     local piece=(kind=="hat" and A.Headwear or A.Weapons)[choice]
-    if not piece or not E.Drop(z,kind,info) then return false end
+    if not piece then return false end
     if kind=="hat" and piece.Armor then
-        if shot and shot.Time==CurTime() then z.ZAHelmetShot={Shot=shot.ID} end
+        if z.ZAHelmetChoice ~= choice or z.ZAHelmetHealth == nil then E.Restore(z) end
+        z.ZAHelmetHealth = math.max(0, z.ZAHelmetHealth - info:GetDamage())
+        local emitter = Emitter(z)
+        if emitter ~= z then emitter.ZAHelmetChoice, emitter.ZAHelmetHealth = choice, z.ZAHelmetHealth end
+        if z.ZAHelmetHealth == 0 then
+            E.Drop(z,kind,info)
+            if shot and shot.Time==CurTime() then z.ZAHelmetShot={Shot=shot.ID} end
+        end
         z:EmitSound("physics/metal/metal_solid_impact_bullet2.wav",75,math.random(95,105),0.8)
         info:SetDamage(0);return true
-    elseif kind=="weapon" then
+    end
+    if not E.Drop(z,kind,info) then return false end
+    if kind=="weapon" then
         info:SetDamage(0);return true
     end
     return ContinueToBody(z,info,tr)

@@ -1,0 +1,11 @@
+UnlitGeneric
+{
+    "$basetexture" "zombiearmytrilogy/enemyfx/textures/symbol_2_blur"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$nocull" "1"
+    "$additive" "1"
+    "$color" "[1.1446842 1.1446842 1.1446842]"
+    "$nolod" "1"
+}

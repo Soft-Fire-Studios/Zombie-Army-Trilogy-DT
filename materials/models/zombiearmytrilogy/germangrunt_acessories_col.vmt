@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/elites/germangrunt_acessories_col"
+    "$bumpmap" "models/zombiearmytrilogy/textures/elites/germangrunt_acessories_norms"
+    "$phong" "1"
+    "$phongexponent" "1.37333293"
+    "$phongboost" "0.171666616"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/elites/germangrunt_acessories_col"
+    "$model" "1"
+}

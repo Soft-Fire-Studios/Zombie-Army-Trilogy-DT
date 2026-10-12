@@ -1,0 +1,11 @@
+UnlitGeneric
+{
+    "$basetexture" "zombiearmytrilogy/firefx/textures/pfx_round_spark"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$nocull" "1"
+    "$additive" "1"
+    "$color" "[53.4518967 53.4518967 53.4518967]"
+    "$nolod" "1"
+}

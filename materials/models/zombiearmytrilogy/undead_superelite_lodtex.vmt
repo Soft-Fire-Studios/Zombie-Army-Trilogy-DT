@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/elites/undead_superelite_lodtex"
+    "$bumpmap" "models/zombiearmytrilogy/textures/elites/gerelite_lodtex_norms"
+    "$phong" "1"
+    "$phongexponent" "100.511525"
+    "$phongboost" "12.5539174"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/elites/undead_superelite_lodtex"
+    "$phongexponenttexture" "models/zombiearmytrilogy/exponents/elites/undead_superelite_lodtex/undead_superelite_lodtex"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/major/helmet_arch_general_ss_cap"
+    "$bumpmap" "models/zombiearmytrilogy/textures/major/helmet_arch_general_ss_cap_n"
+    "$phong" "1"
+    "$phongexponent" "18.4972838"
+    "$phongboost" "2.31093763"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/major/helmet_arch_general_ss_cap"
+    "$phongexponenttexture" "models/zombiearmytrilogy/exponents/major/helmet_arch_general_ss_cap"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

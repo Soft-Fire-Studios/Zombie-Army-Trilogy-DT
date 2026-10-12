@@ -2,6 +2,17 @@
 -- angles are degrees, and delays are seconds. Animation speed comes from
 -- each model sequence's walkframes, not a separate movement-speed setting.
 return {
+    -- Trilogy actor MaximumHealth and Medium damage profiles. Unknown weapon
+    -- types retain the ordinary 2x head multiplier; named weapons/hold types
+    -- select the authored pistol, rifle and machine-gun critical multipliers.
+    Combat = {
+        Health = 150,
+        Resistance = {Bullet = 1, AIBullet = .4, Explosion = 1},
+        Head = {Bullet = 2, Pistol = 10, Rifle = 33, MachineGun = 16, AIBullet = 33},
+        Arm = .3, Leg = .5, RifleLeg = .6,
+        WeaponTypes = {weapon_pistol = "Pistol", weapon_357 = "Pistol",
+            weapon_smg1 = "MachineGun", weapon_ar2 = "MachineGun", weapon_crossbow = "Rifle"}
+    },
     Audio = {
         VocalVolume = 0.5, BreathVolume = 0.5,
         EventDistance = 1400, EventDistanceInterval = 0.25,
@@ -23,6 +34,7 @@ return {
     Equipment = {
         HeadwearBodygroup = 4,
         WeaponBodygroup = 5,
+        HelmetHealth = 100, -- Native ITEMS Health; independent of flesh damage.
         -- Compiled bodygroup order follows native Grunt held-weapon variants.
         Weapons = {"stump", "bent_metal", "bent_metal_b", "bone", "bone_b", "bone_c",
             "broken_bottle", "hammer", "meathook", "metal_bracket", "plank",
@@ -34,7 +46,7 @@ return {
         FacingAngle = 35, -- Half-angle: target must be this close to forward.
         HullWidth = 12,
         HullHeight = 20,
-        Damage = 20,
+        Damage = 12,
         UnarmedDamage = 12,
         Cooldown = 0.4
     },
@@ -166,12 +178,12 @@ return {
     Gore = {CrunchVolume = 0.75, SplatVolume = 0.8, HitCooldown = 0.1, Bursts = 2},
     Look = {Interval = 0.1, Speed = 75}, -- Native look poses supply degrees; this is addon follow speed.
     Recovery = {
-        ResurrectionChance = 0.2, -- Addon tuning; the original AI probability is not decoded.
+        ResurrectionChance = 0.5, -- Addon tuning; the original AI probability is not decoded.
         ResurrectionHealth = 0.45,
-        MaxResurrections = 1,
         MinExplosionDamage = 20,
         MinDownTime = 2, MaxDownTime = 4,
         ResurrectionDelay = 4,
+        ResurrectionEffectTime = 5, -- Hold one native glyph through emergence; do not repeatedly restart it.
         SettleSpeed = 35,
         MaxKnockdownSpeed = 400, -- Added speed in Source units/s, distributed across the whole ragdoll.
         MaxDownTimeLimit = 10,

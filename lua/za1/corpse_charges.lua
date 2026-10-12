@@ -23,18 +23,18 @@ function C.Register(z,rag)
     rag:CallOnRemove("ZA1/CorpseCharges",function(entity) C.Corpses[entity]=nil end)
 end
 function C.Trace(rag,state,start,delta)
-    local scale=rag:GetModelScale();local closest,fraction
+    local scale=rag:GetModelScale();local closest,fraction,name
     for _,shape in ipairs(state.shapes) do
         local matrix=rag:GetBoneMatrix(shape.bone)
         if matrix then for _,box in ipairs(shape.boxes) do
             local pos,_,hit=util.IntersectRayWithOBB(start,delta,matrix:GetTranslation(),matrix:GetAngles(),
                 box.mins*scale,box.maxs*scale)
-            if pos and (not fraction or hit<fraction) then closest,fraction=pos,hit end
+            if pos and (not fraction or hit<fraction) then closest,fraction,name=pos,hit,shape.name end
         end end
     end
-    return closest,fraction
+    return closest,fraction,name
 end
-function C.Detonate(rag,pos,info)
+function C.Detonate(rag,pos,info,explosive)
     if not IsValid(rag) or not C.Corpses[rag] or rag.ZADetonated then return false end
     C.Corpses[rag]=nil;rag.ZADetonated=true
     local attacker,inflictor=info:GetAttacker(),info:GetInflictor()
@@ -46,7 +46,7 @@ function C.Detonate(rag,pos,info)
     -- Defer removal/physics creation out of the engine's bullet damage callback.
     timer.Simple(0,function()
         if IsValid(rag) then ZA1.Specials.Breakup(rag,damage) end
-        ZA1.Feedback.Explosion(pos)
+        ZA1.Feedback.Explosion(pos,explosive)
         attacker=IsValid(attacker) and attacker or game.GetWorld()
         inflictor=IsValid(inflictor) and inflictor or (IsValid(rag) and rag or game.GetWorld())
         if ZA1.Doors then ZA1.Doors.Blast(inflictor,pos,settings.BlastRadius*scale,settings.BlastDamage) end
@@ -63,7 +63,7 @@ hook.Add("EntityFireBullets","ZA1/CorpseCharges",function(shooter,data)
         if info:GetDamage()<=0 or type(result)=="table" and result.damage==false then return result end
         local delta=tr.HitPos-tr.StartPos;local length=delta:Length()
         if length<1 then return result end
-        local chosen,position,nearest
+        local chosen,position,nearest,explosive
         for rag,state in pairs(C.Corpses) do
             if not IsValid(rag) then C.Corpses[rag]=nil
             elseif state.created<fired then
@@ -74,14 +74,14 @@ hook.Add("EntityFireBullets","ZA1/CorpseCharges",function(shooter,data)
                     -- A hit on this ragdoll's flesh may lie in front of its
                     -- attached charge. Other hit entities still occlude it.
                     local extension=tr.Entity==rag and 32*rag:GetModelScale() or 0
-                    local pos,fraction=C.Trace(rag,state,tr.StartPos,delta:GetNormalized()*(length+extension))
+                    local pos,fraction,name=C.Trace(rag,state,tr.StartPos,delta:GetNormalized()*(length+extension))
                     if pos and (not nearest or fraction*(length+extension)<nearest) then
-                        chosen,position,nearest=rag,pos,fraction*(length+extension)
+                        chosen,position,nearest,explosive=rag,pos,fraction*(length+extension),name
                     end
                 end
             end
         end
-        if chosen then C.Detonate(chosen,position,info) end
+        if chosen then C.Detonate(chosen,position,info,explosive) end
         return result
     end
 end)

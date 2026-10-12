@@ -1,0 +1,13 @@
+Refract
+{
+    "$normalmap" "zombiearmytrilogy/enemyfx/chainsaw/blade_trail/trail_lines_norms"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$nocull" "1"
+    "$refractamount" "0.018"
+    "$bluramount" "0"
+    "$model" "0"
+    "$nowritez" "1"
+    "$vertexcolormodulate" "1"
+}

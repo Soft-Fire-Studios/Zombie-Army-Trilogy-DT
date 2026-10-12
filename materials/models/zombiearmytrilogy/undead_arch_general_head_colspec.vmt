@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/major/undead_arch_general_head_colspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/major/hitlerhead_norms"
+    "$phong" "1"
+    "$phongexponent" "11.884003"
+    "$phongboost" "1.48550037"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/major/undead_arch_general_head_colspec"
+    "$model" "1"
+}

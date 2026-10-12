@@ -1,0 +1,11 @@
+UnlitGeneric
+{
+    "$basetexture" "zombiearmytrilogy/enemyfx/textures/pfx_debris_litter_8flip"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$nocull" "1"
+    "$additive" "1"
+    "$color" "[99.9772491 99.9772491 99.9772491]"
+    "$nolod" "1"
+}

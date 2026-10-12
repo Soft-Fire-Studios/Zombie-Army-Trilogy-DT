@@ -1,0 +1,8 @@
+UnlitGeneric
+{
+    "$basetexture" "zombiearmytrilogy/firefx/textures/pfx_flames_short_16flip2"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$nocull" "1"
+}

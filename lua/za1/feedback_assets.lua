@@ -1,9 +1,7 @@
 -- SNPC-PRP provides these systems; no PRP PCFs or materials are bundled.
 return {
-    ["Particles"] = {"ins_blood_impact_headshot", "horror_bloodsplosion", "doi_muzzleflash_mp40_3p", "doi_muzzleflash_thompson_3p", "doi_muzzleflash_luger_1p", "doi_grenade_explosion"},
+    ["Particles"] = {"ins_blood_impact_headshot", "doi_muzzleflash_mp40_3p", "doi_muzzleflash_thompson_3p", "doi_muzzleflash_luger_1p"},
     ["Headshot"] = "ins_blood_impact_headshot",
-    ["FullGib"] = "horror_bloodsplosion",
-    ["Explosion"] = "doi_grenade_explosion",
     ["Muzzles"] = {["mp40"] = "doi_muzzleflash_mp40_3p", ["thompson"] = "doi_muzzleflash_thompson_3p", ["luger"] = "doi_muzzleflash_luger_1p"},
     ["ExplosionSounds"] = {
         {

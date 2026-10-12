@@ -170,8 +170,8 @@ Armored Heavy
   Worn-plate checks run only on hits. Armor before flesh absorbs shots; front plates do not shield the rear.
   Exposed flesh takes damage. Breaking bullets are absorbed, and broken/damaged armor persists on recycle.
   Native visual geometry exposes substantially more rear torso than front torso in reference-pose ray checks.
-  Durability is editable addon balance: 100 per plate; chest 200, stomach 150, back 140 and helmet 160.
-  Health is 250. Native BLUE damage-property meanings and exact native durability remain unresolved.
+  Recovered native ITEMS Health is 400 per Heavy plate; actor MaximumHealth is 150.
+  Body bullet resistance is 0.2; blast resistance 0.6. Exposed critical regions use its alternate profile.
   Two native walks, four 90/180 turns, four attacks including two lunges, flinches and emergence are retained.
   Four visual LODs plus shadow LOD preserve native geometry with distant facial/finger/toe bone collapse.
   Nineteen native physics bodies produce one flesh ragdoll with remaining armor and native headshot gore.
@@ -250,3 +250,363 @@ Installation and compatibility
   Restart Garry's Mod and give every multiplayer client the entire new addon folder.
   Remove the old active Zombie-Army-1-DT folder from client installations too.
   The original ZombieArmy1 source tree and game archives stay intact.
+
+ELITE ADDITIONS (2026-10-10)
+
+fire: models/zombiearmytrilogy/undead_fire_demon.mdl; 34 native clips, 19 native physics bodies, 19 anatomy hitboxes, four LODs plus shadow LOD.
+  equipment: helmet_fire_demon at helmet (Default)
+  retained unresolved native sound: undead_grunt_flinch_front_chest_a, za1_sound_0, Sound slot 143: No character binding for slot 143
+  retained unresolved native sound: undead_grunt_idle_weapon, za1_sound_1, Sound slot 107: No character binding for slot 107
+  retained unresolved native sound: undead_grunt_idle_weapon, za1_sound_3, Sound slot 107: No character binding for slot 107
+  retained unresolved native sound: undead_grunt_walk_fwd_weapon, za1_sound_0, Sound slot 106: No character binding for slot 106
+  retained unresolved native sound: undead_grunt_walk_fwd_weapon, za1_sound_6, Sound slot 106: No character binding for slot 106
+burning: models/zombiearmytrilogy/undead_soldier_burnt_glow.mdl; 22 native clips, 19 native physics bodies, 19 anatomy hitboxes, four LODs plus shadow LOD.
+  retained unresolved native sound: fire_zombie_run_fwd, za1_sound_0, Sound slot 117: No character binding for slot 117
+  retained unresolved native sound: undead_grunt_idle_weapon, za1_sound_1, Sound slot 107: No character binding for slot 107
+  retained unresolved native sound: undead_grunt_idle_weapon, za1_sound_3, Sound slot 107: No character binding for slot 107
+  retained unresolved native sound: undead_grunt_walk_fwd_weapon, za1_sound_0, Sound slot 106: No character binding for slot 106
+  retained unresolved native sound: undead_grunt_walk_fwd_weapon, za1_sound_6, Sound slot 106: No character binding for slot 106
+chainsaw: models/zombiearmytrilogy/undead_chainsaw_elite.mdl; 28 native clips, 19 native physics bodies, 19 anatomy hitboxes, four LODs plus shadow LOD.
+  equipment: gunther_chainsaw at Hand_R (Held)
+  equipment: stick_grenade at Stowed_Grenade_01 (Default)
+  equipment: heavyarmour_mask_120 at helmet (Default)
+  equipment: super_elite_swastika_band at Arm_L_U_2 (Default)
+  retained unresolved native sound: undead_grunt_idle_weapon, za1_sound_1, Sound slot 107: No character binding for slot 107
+  retained unresolved native sound: undead_grunt_idle_weapon, za1_sound_3, Sound slot 107: No character binding for slot 107
+  retained unresolved native sound: undead_grunt_walk_fwd_weapon, za1_sound_0, Sound slot 106: No character binding for slot 106
+  retained unresolved native sound: undead_grunt_walk_fwd_weapon, za1_sound_6, Sound slot 106: No character binding for slot 106
+summoner: models/zombiearmytrilogy/undead_summoner.mdl; 17 native clips, 19 native physics bodies, 19 anatomy hitboxes, four LODs plus shadow LOD.
+  retained unresolved native sound: undead_grunt_flinch_front_chest_a, za1_sound_0, Sound slot 143: No character binding for slot 143
+  retained unresolved native sound: undead_grunt_idle_weapon, za1_sound_1, Sound slot 107: No character binding for slot 107
+  retained unresolved native sound: undead_grunt_idle_weapon, za1_sound_3, Sound slot 107: No character binding for slot 107
+  retained unresolved native sound: undead_grunt_walk_fwd_weapon, za1_sound_0, Sound slot 106: No character binding for slot 106
+  retained unresolved native sound: undead_grunt_walk_fwd_weapon, za1_sound_6, Sound slot 106: No character binding for slot 106
+
+Native models, head variants, hardpoints, HCAN events, HSND bindings and physics came from cached Trilogy archives.
+All old assets remain byte-identical. Sources are under src/specials and the export/audit is audit/elites-export.json.
+Materials use the current viewer conversion and native texture names; new normal maps stay BGR/BGRA, and colors use DXT where appropriate.
+PRP is referenced externally by registered names; no PRP PCFs/materials/textures were copied.
+Fire Demon behavior reference: https://zombiearmy.fandom.com/wiki/Fire_Demon
+Summoner behavior reference: https://zombiearmy.fandom.com/wiki/Summoner
+Suicider-exclusive Trilogy summoning was not established; summoner.SpawnPool defaults to commons and is editable.
+Addon balance values remain explicit in special_settings.lua. Original event times and walkframes are retained.
+Live engine gameplay has not been measured in this offline pass.
+
+FIRE DEMON RECOVERY (ZA2 animation set, 2026-10-10)
+Seven original ZA2 clips replace the corresponding Trilogy recovery clips.
+ZA2 Blast collapses to a kneeling endpoint, unlike the upright Trilogy endpoint.
+The native rig names/hierarchy match, and no body/head/equipment mesh changed.
+Transferred all 12 native events, including breathing, take-hit and recovery voice.
+Source blend times are 0.2 seconds; native poses, timing and actor travel are retained.
+Recovery now enters the collapse, holds a timed downed idle, accepts one
+directional injury at a time, and plays get-up before restoring flame protection.
+The downed timer is not restarted by injuries. Generic DT flinch reentry remains
+suppressed inside the action; damage/death still run through normal DT callbacks.
+Original game archives and the viewer remain unchanged. PRP remains external.
+Sources/evidence: inspect_fire_recovery.py, build_fire_recovery.py,
+audit/fire-recovery-native.json, audit/fire-recovery-export.json.
+Native combat and AI transfer (2026-10-10)
+  Original cached BLUE records plus focused offline native-game consumers establish actor and item health.
+  Health: common/camo/Skeleton/Heavy 150; Suicide 55; Fire 500; Ignited 1; Chainsaw 1000; Summoner 100.
+  Contact damage: common/Skeleton/Heavy/Ignited 12; Fire/Chainsaw 25; Summoner remains a support caster.
+  Armor: common helmet 100; Skeleton plate 200; Heavy plate 400; Chainsaw mask 300.
+  Native Medium bullet/critical/limb profiles are adapted to named Source weapons and SWEP hold types.
+  Armor is resolved before flesh scaling; partial helmets/plates persist through recycling and common revival.
+  Chainsaw mask registration uses a second worn-only hitbox set; no visual/animation/physics-shape changes.
+  Chainsaw consumes native 80/60/40/20% health reactions once; interruptions defer one reaction.
+  Summoner patient-loop and lost-sight pursuit use existing bounded navigation and population systems.
+  Fire retains ZA2 kneeling, four directional injuries, timed recovery and native event/audio preservation.
+  No DT Base, capsulehit, original game, viewer, PRP or material files are modified by this pass.
+  Native armor penetration, unnamed damage subtypes and full native cast/teleport policy remain unresolved.
+  Source ranges/cooldowns/projectile tuning and existing heart/head kill exceptions are explicit adaptations.
+  Evidence: audit/native-combat.json and audit/native-combat.md in the source project.
+
+Final special-enemy patch (2026-10-11)
+Adds Deadeye Sniper, MG42 Elite, Occult General, one detached helmet and one
+shield skull. Existing asset files are retained byte-for-byte. New shared server
+modules drive authored weapon poses, bounded sniper jumps and owner-scoped
+General phases; the existing director/population/hitgroup systems are reused.
+Original names survive in new material/audio files; no PRP content is copied.
+See source audit/final-specials-report.txt and final-specials-roster.json for
+native provenance, validation and the explicit Source behavior adaptations.
+
+Elite followup (2026-10-11)
+Restored original intact glove meshes for Deadeye, MG42 Elite and Chainsaw Elite at all LODs; intact hands remain independent of the destroyed-head bodygroup. Enabled the authored rifle/MG42 weapon bodygroup at spawn. Native gun geometry and pose limits retained.
+
+Fire Demon: native state-guarded wave recharge 2s, conversion recharge 6s and power-rest 5s; ordinary rest uses Trilogy standing recovery, then its 1.833s outro and 0.1s settle without healing. Surviving blast damage during rest adds the requested ZA2 knee collapse/directional reactions/get-up inside the same deadline. Co-op waves use the original 11/16/22/30 rosters and 45/35/40/45 percent surviving-wave thresholds. The enabled native ranged action converts living zombies; player fireballs remain an explicit Source option. The original radial Ignite and player-targeted cast AI nodes are disabled. Source population, nav admission and projectile limits remain explicit in special_settings.lua.
+
+Summoner: stable stationary support in AI control, including remembered targets and hearing. Removed the Source-specific LOS-driven chase/hold switch; possession can still move. The owned Trilogy behavior tree has no movement/sight/range rule.
+
+Fire/Chainsaw pursuit no longer cancels routes while attacks cool down. Burning/common crowd attackers retain their previously checked same-target slot during bounded refresh; failed/removed/retargeted/out-of-limit claims still revoke it. Installed DT movement and compiled gait regression verifies continuity; world entities remain simulated in offline validation.
+
+Occult General: final defeat runs inside DT's death-animation stage and removes after the sink adapter; its cast/phase controller cannot restart. Authored simultaneous summon vocal/foley and exit dialogue get independent sound ownership/channels and cleanup. Original owned idle clips contain no audio markers; no ambient idle role was established. Existing final sink remains an explicit Source reverse-emergence adapter.
+
+Evidence: audit/fire-general-native-followup.report.json, audit/missing-hands-guns-validation.json, audit/validation-fire-standing.json, audit/elite-movement-followup.md and audit/validation-elite-followup.json. PRP remains external; shared capsule and DT Base sources retained.
+
+Chainsaw motion correction (2026-10-11)
+The dash attack and damaged reaction exceed Source's walkframe command limit and use two sequences. Their second sequences previously retained the actor travel already consumed by DT, displacing the rendered skeleton at the join. Each continuation now uses a separately sliced SMD with that travelled translation removed from the unweighted motion parent. Authored body poses, recovery steps, event timing, hit windows and walkframes in increments of five are preserved. Only the Chainsaw model is rebuilt; hands, armor, hitboxes, materials, ragdoll data and other enemies are retained.
+
+Evidence: audit/chainsaw-motion-export.json and audit/validation-chainsaw-motion.json. Independent compiled-pose checks cover both complete clips and their joins against the original unsplit SMD, with the previous model as a failing regression control. Live gameplay remains to be tested in Garry's Mod.
+
+Occult General airborne bounds correction (2026-10-11)
+Measured the existing compiled General's animated hitboxes to replace the shared ground-level damage bounds. His fixed physics box now covers the airborne body and leaves the floor underneath clear. A stationary origin preserves the authored elevation instead of letting NextBot gravity lower the raised collider to the floor. Bounds refresh only on initialization or model-scale changes; model hitgroups and the skull-shield/headshot encounter remain intact.
+
+Evidence: audit/general-bounds-export.json and audit/validation-general-bounds.json. Compiled pose and interpolation checks cover all animation hitboxes; Lua fixtures exercise scaled collision, physics initialization and the installed DT injury callbacks. Live gameplay remains to be tested in Garry's Mod.
+
+Chainsaw forward-charge behavior correction (2026-10-11)
+The attack controller previously skipped Undead_Elite_Chainsaw_Attack_Dash, going directly from the telegraph to DashAttack. It now plays the authored moving charge loop through DT's animation movement, then enters the combo when an AI target reaches melee range. A missed or blocked charge has a travel/time limit derived from the configured maximum range and the model's authored movement. Possession gets a finite forward charge before the combo. The earlier split-sequence motion-parent correction is retained.
+
+Evidence: audit/validation-chainsaw-charge.json and validation-lua.json. A previous-controller regression reproduces the skipped phase; the new phase is checked through installed DT PlaySequence, PSAM and BehaveUpdate with compiled walkframes, yaw/model scaling, swept world blockers, multiplayer physics renewal, possession and interruptions. World collision remains simulated; in-game confirmation is still required.
+
+Complete Fire Demon, Deadeye and MG42 AI pass (2026-10-11)
+Fire Demon: action priorities, guarded recharge timers, co-op wave placement and
+retained surviving-wave capacity now follow the original enabled AI. Its single
+fireball resource launches from the animated Grenade hardpoint with target_1
+as the authored arc anchor. Native gravity, explosive fuse, blast falloff and
+reduced damage through cover are retained. Conversion replaces compatible
+living zombies with burning zombies and does not revive corpses or increase
+the population. The retained player-damage option uses the same projectile.
+The weighted Attack_A/Right_Swipe pool and three actual strike markers are
+connected; Right_Swipe can strike twice. Four named spotting vocals are used;
+no death voice is invented for its event-free death clip.
+
+Deadeye: the weapon's physical rate is 90 RPM, independent of its five-second
+AI firing wait. Physical pose readiness gates the opening warning; successful
+shots alone consume ammunition and the initial distant misses. Accuracy uses
+the original distance curve. The authored ten-round reload has no invented
+per-shot bolt action. Nav sniper points, reservations, bounded authored jumps,
+threat retreat and hearing reuse the existing shared movement systems.
+Held points use the original 3-5 shot and 7-15 second idle relocation limits;
+accepted player damage also requests relocation. A six-second lost-sight grace
+aims at the last visible eye position and selects a miss. Warning/periodic
+glints use native view cones. Visible nearby grenades trigger a bounded escape
+through a shared event registry, without scanning all entities per sniper.
+
+MG42: original 600 RPM counted bursts of 2-10 shots, a 32-round magazine and
+0.5-4 second waits replace the generic combat policy. It walks and aims in
+parallel without restarting its gait for each refreshed target position. It
+uses close melee, authored reload, one firing loop and native damage scaling.
+Health reactions select BothArms / OneArm_Short / OneArm / Head_Small at
+80/60/40/20 percent, with one pending reaction and no invented eight-second
+cooldown. No owned rage or overheat behavior was established.
+
+Source adaptations are explicit: nav geometry substitutes for scene-authored
+point/link objects; visibility/aim and work budgets protect Source gameplay;
+Fire following keeps the authored gait instead of applying native dynamic
+speed scaling to Source walkframes; shared wandering supplies idle movement.
+possession remains responsive; MG injury clips use complete authored playback
+because exact native partial-layer bone masks are unresolved. The native
+shared ten-second lethal revival requires spawn flags not established for
+Fire Demon scenes, so its normal lethal death is retained. New sockets and
+actor-specific strike dispatch are the only Fire model changes; all existing
+poses, render meshes, LODs, materials, hitgroups and ragdoll constraints remain.
+The Chainsaw forward charge and General airborne collision fixes are retained.
+
+Evidence: audit/fire-complete-report.json, audit/fireball-socket-export.json,
+audit/validation-fireball-model.json and the complete-special-ai validation.
+Lua checks execute the installed GMod LuaJIT and DT implementation with actual
+compiled clips; world entities/collision remain simulated. No live gameplay
+or performance improvement is claimed by this offline verification. PRP is
+referenced externally; shared DT Base and capsule sources are unchanged.
+
+Original Fire Demon and burning-zombie VFX (2026-10-11)
+zat_fire.pcf contains seven original Fire Demon effects and five original
+burnt-grunt variants, with 62 original component instances and named textures.
+Enabled hooks cover both hand flames, pre-throw PowerUp charge, fireball body
+and trail, impact, spine recharge and helmet reactivation. Glowing burning
+zombies use their original target_1 wearable and spine01 activation; death
+ash samples the Source model/hitbox surface and drains after actor removal.
+The eliminated left-weapon helper is constant across all 41 exported clips
+and safely follows the surviving left-hand bone; no model rebuild is needed.
+
+The radial Ignite effect remains a ported library asset for its disabled AI
+branch: its omitted MG_Stowed helper is animated, so a fixed bone guess would
+be incorrect. The burning burst also remains available without inventing its
+separate self-destruct attack. Ordinary burnt smoke belongs to another native
+appearance and does not replace the current glowing actor's effect.
+
+Three original ordered ribbons and two linked particle leaders use a bounded
+client adapter. Sprites use stock Source PCFs with original DDS DXT mip bytes
+and real VTF atlas sheets; sampled age/size/color sheets, force/noise/drag,
+heat haze, loop duty and skin-surface sampling are declared Source adapters.
+Particle states are owned once per actor/frame, distance/dormancy culled and
+stopped on state changes, death, removal and cleanup. Finite ash is detached
+so already emitted particles can drain. Original game, DT Base, models, sound
+assets and the external PRP package are retained. The new pack adds about
+42 MiB; materials remain below 1 GiB. Restart Garry's Mod for the new PCF.
+
+Evidence: audit/fire-vfx-native-bindings.json, fire-vfx-assets.json,
+fire-vfx-ribbons-report.json and validation-fire-vfx.json in the source
+project. Source's DMX converter reads the complete PCF; installed LuaJIT
+checks the real controllers, protocol, bounded renderer and lifecycle.
+In-game appearance and multiplayer rendering still need visual confirmation.
+
+Fire VTF reader correction (2026-10-11)
+Corrected 72 fire VTF resource dictionaries to ascending resource-type order,
+as Source requires, and added NOMIP/NOLOD to the two authored single-mip maps.
+Names, dimensions, DXT/BGR formats, every mip byte and atlas payload are kept.
+The exporter and its readback now reject unordered entries/missing flags.
+Independent native VTFLib checks read every mip and sheet in all 73 fire VTFs,
+with the previous headers retained as failing regression cases. PCF, gameplay
+and other model/material assets are retained. Evidence: validation-fire-vtf.json.
+
+Fire approach, texture roles and shoulder stability (2026-10-11)
+Fire Demon follows the actual target inside its close follow band. Its previous
+desired-spacing offset could put the movement goal behind it and prevent melee.
+Far follow spacing remains authored; hidden targets use the remembered goal.
+
+All 20 named source textures and 62 layer instances have individual UV/playback
+roles in audit/fire-texture-roles.txt. Heat-haze materials isolate their authored
+regions, mask normal distortion, and use alpha-preserving BGRA8888 normals.
+Multi-frame haze uses a documented peak-opacity region adapter for Source.
+Twenty looping flipbook layers now select among four sampled starting phases;
+their 64px tiles keep atlas area unchanged. Native DXT mip bytes are preserved.
+
+Twelve full/upper ragdolls merge clavicle collision geometry into the chest and
+exclude connected upper-arm/chest self collision. Remaining joint limits are
+preserved, with StudioMDL recomputing merged body weights. Render bones, meshes,
+animations, hitboxes, skins, attachments and LODs retain their original bytes.
+Client equipment, gib and detached-door props receive one birth overlap check,
+at most six relocation attempts, and never wake inside a failed clearance.
+This is independent of the server ragdoll fix; no global physics settings or
+per-frame prop polling are introduced. New models/physics and PCF need a full
+Garry's Mod restart on server and clients, then newly spawned actors/corpses.
+
+Validation: audit/validation-fire-refinement.json, ragdoll-stability.json,
+fire-texture-roles.json and validation-lua.json. Compiler, native VTF/DMX loader
+and Lua/DT fixture checks are recorded; in-game rendering and physics still need
+visual confirmation. DT Base, shared capsules and external PRP are untouched.
+
+Fire layers, smoke and Source color correction (2026-10-11)
+Fireball impacts now play both original cosmetic bindings: the Fire Demon
+radial-damage effect and its inherited weapon concussion effect. The latter
+adds five named bloom, flash, smoke and radial layers. Gameplay damage, ignition
+and explosion audio still occur once.
+
+Sprite appearance sheets now decode texture colors to linear RGB before
+blending frames or applying native float tint, then encode once for Source.
+HDR values remain unbounded through SpriteCard overbrightfactor; alpha stays
+linear. Resizing and mips filter alpha-weighted linear colors. This corrects
+double-darkened smoke and skewed HDR color ratios. Attached SpriteCard layers
+explicitly disable Source's implicit depth-intersection fading. Haze normal
+fields and original DDS DXT mip bytes retain their previous bytes.
+
+The audit now accounts for 22 named textures, 13 systems and all 67 component
+instances. Native color-space/HDR tonemapping, global FXET modulation and some
+orientation flags remain declared Source adapters. Unbound legacy/disabled
+effects are not added to unrelated actions. This is a VFX pass; ragdoll, AI,
+navigation, sound, DT Base, shared capsule and external PRP files are retained.
+
+Validation: audit/validation-fire-layers.json, validation-fire-colors.json,
+fire-texture-roles.txt and validation-lua.json. Restart Garry's Mod on the server
+and all clients to reload the PCF and materials; test newly spawned actors.
+
+Fire presentation, death and summoning correction (2026-10-11)
+The missing additive Fire Demon layers now share the existing direct-atlas mesh
+renderer used for linked spark leaders. Hand, flying fireball, charge, recharge,
+reactivation and impact sprites sample their original named DDS images, authored
+UV/frame tables, float RGBA, half extents, size variation and absolute roll.
+Each emitter is batched; these standalone sprites allocate no trail histories
+and are omitted from PCF children to prevent duplicate particles. Smoke, haze,
+burning-zombie appearance, model/ragdoll physics and gameplay damage are retained.
+Client work is bounded at 256 effect instances, 2048 live sprites/leaders and
+4096 submitted ribbon segments/sprite quads per draw pass, with existing distance
+culling, stop/drain and cleanup. Stock Source rendering/tonemapping and native
+stochastic/host inputs remain adaptations, not original-engine equivalence.
+
+The compiled Fire_Demon_Death clip now runs through DT's incapacitation coroutine,
+with its authored root motion and without injury/death reentry. At completion,
+an original fireball burst and impact sound play once, then the actor is removed.
+The native death clip has no PFX marker: this ending is a Source presentation
+adapter, adds no damage and does not leave an intact ragdoll after the burst.
+
+Demonic_Resurection and Embers_Resurection replace the initial bare ground sprite.
+The symbol follows the ground normal and uses its original orange HDR/size/roll
+burst once, without forced repetition during the Source revival wait. Original embers use
+their own atlas, birth shape and appearance/motion curves. The cue now also plays
+for freshly summoned minions while their emergence animation runs. This combined
+cue is a Source adapter; a joint native invocation was not established.
+The existing resurrection messages are retained, duplicate cues replace the old
+ones, early multiplayer entity delivery has a fixed world fallback, and expiry,
+cancellation/removal and map cleanup release the effects. The old single-sprite
+PCF and superseded appearance sheets are retired with verified backups.
+
+Validation: audit/validation-fire-presentation.json and validation-lua.json.
+All original native DDS mip bytes, models, physics, hitgroups, sound files,
+navigation, DT Base, shared capsules and external PRP remain unchanged. Restart
+Garry's Mod on the server and all clients to refresh particles/materials; actual
+in-game fire visibility, intensity and summoning appearance still need testing.
+
+Native effect parameter and attachment correction (2026-10-11)
+REA checked the original effect readers, controller/particle consumers and HMPT
+pose transforms. The selected 15 controllers and 69 component instances retain
+their names, raw values, curve domains and explicitly unresolved fields in
+audit/fire-parameter-review.json and fire-parameter-review.txt. The offline
+analysis carrier was never executed; the owned REA session was closed.
+
+The right flame now reads the compiled Grenade attachment instead of an
+attachment-only bone from the render cache. A fixed relative transform reproduces
+Hand_R across all 42 decoded animation clips/2863 integer-frame poses, with
+maximum transform error 6.1e-6 Source units. The other authored sockets are retained.
+No model compile or guessed bone reassignment is required.
+
+Removed the repeated one-second summoning restart. The original finite symbol
+fades out once. Original resurrection embers have a half-second parent controller
+and an independently timed ten-second emitter; parent expiry no longer cancels
+that emitter. Explicit Source cue cancellation still stops and drains particles.
+Finite charge/pulse effects also finish once without restarting while a phase
+remains held. Emitter time scaling and particle drain bound finite cleanup.
+
+Direct-atlas sprites use native base-lifetime frame rates, seed variation,
+float-bit random starts, optional frame interpolation, UV mirroring and rectangle
+aspect. The PCF glow remains an explicit native cyclic-age approximation.
+Atlas blends stay in one batch and both quads count toward the 4096-quad limit;
+instance, particle and distance budgets are retained. FXET RGBA/scalar inputs
+also feed a separate spatial-object channel; those are not blanket sprite
+tint/size overrides. Native lighting, shader/tonemapping and orientation gaps are
+reported explicitly. No full native-renderer equivalence is claimed.
+
+Validation: audit/validation-fire-parameters.json and validation-lua.json.
+Models, ragdoll physics, hitgroups, sounds, AI/navigation, material/PCF bytes,
+DT Base, shared capsules and external PRP remain unchanged. Restart Garry's Mod
+on the server and clients before testing fresh Fire Demons and revival cues.
+
+Enemy effects and director summoning (2026-10-11)
+48 original enemy effect roots preserve all 157 component instances, named
+textures and per-layer curves. The original resources now cover the Occult
+General, Summoner, Deadeye, Chainsaw Elite, Skeleton variants, Suicide Grunt,
+MG42 Elite and scripted common-minion dissolve presentation. Existing Fire
+Demon/burning effects share the same bounded renderer. Native lighting remains
+excluded; no dynamic lights or PRP assets were added.
+
+Native BLUE/HMPT sockets are composed through evaluated compiled bones once.
+Wearable effects follow appearance states, Chainsaw trails follow the whole
+attack action, and admitted hit effects use the actual hit positions. General
+skull effects follow the original skull-group hardpoint, adapted to the current
+Source orbit helper; regeneration/cast effects use their original controller
+families. Native controller delays drive cosmetic cast cues without additional
+damage, spawns or AI work. Unproved mission/trajectory triggers remain explicit
+Source presentation adapters in the binding audit.
+
+Fresh and recycled director zombies use the original finite pentagram plus
+independent embers at the actual emergence animation start. An existing summon
+cue prevents a second restart. The renderer reserves 100 ground-glyph particles
+and instance slots and submits those glyphs before decorative work. All effects
+share 512 instance slots, 4096 hosted particles and 4096 draw quads, with distance
+culling and bounded history/birth work. Host-only systems do not allocate empty
+Source particle handles; common zombies skip unused per-frame effect polling.
+
+The shared renderer retains frozen/cyclic-age glow particles, emitter fractional
+births across controller loops, rotation/translation follow, velocity-aligned
+quads and original frame/UV parameters. Native startup prewarm is bounded by the
+same particle budgets. The General dust trail follows its original component-0
+particle source. Alpha layers sort by depth and additive layers share material
+batches. Skin emission uses a cached animated Source hitbox-surface adapter.
+Stock Source refraction, alpha interpolation, HDR/shader math and reconstruction
+of original mission gameplay remain documented rendering/host limitations.
+
+Models, animations, ragdoll physics, hitboxes, existing material/PCF payloads,
+sounds, AI/navigation, DT Base, shared capsules and PRP remain unchanged. Restart
+Garry's Mod on the server and all clients to load the new named particle assets.
+Offline engine-Lua/Source-DMX checks do not establish installed visual equality.
+Validation: audit/validation-enemy-vfx.json and audit/validation-lua.json.

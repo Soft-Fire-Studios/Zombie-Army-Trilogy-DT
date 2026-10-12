@@ -6,16 +6,19 @@ for _,name in ipairs(A.Particles) do PrecacheParticleSystem(name) end
 if SERVER then
     util.AddNetworkString("ZA1/Feedback")
     local guns={mp40=1,thompson=2,luger=3}
-    function F.Send(kind,pos,angles,entity,attachment,weapon)
+    function F.Send(kind,pos,angles,entity,attachment,weapon,explosive)
+        -- Reject a bad position before starting a message shared by all addons.
+        if not isvector(pos) then return false end
         net.Start("ZA1/Feedback");net.WriteUInt(kind,2);net.WriteVector(pos);net.WriteAngle(angles or angle_zero)
         if kind==0 then net.WriteEntity(entity);net.WriteUInt(attachment or 0,8);net.WriteUInt(guns[weapon] or 1,2) end
+        if kind==3 then net.WriteBool(explosive and explosive~="stick_grenade" or false) end
         net.SendPVS(pos)
     end
     function F.Muzzle(z,pos,angles,attachment,weapon) F.Send(0,pos,angles,z,attachment,weapon) end
     function F.Headshot(pos,angles) F.Send(1,pos,angles) end
     function F.FullGib(z,pos) F.Send(2,pos or z:WorldSpaceCenter(),z:GetAngles()) end
-    function F.Explosion(pos)
-        F.Send(3,pos,angle_zero)
+    function F.Explosion(pos,explosive)
+        F.Send(3,pos,angle_zero,nil,nil,nil,explosive)
         for _,layer in ipairs(A.ExplosionSounds) do
             sound.Play(layer.Files[math.random(#layer.Files)],pos,90,100,layer.Volume)
         end
@@ -38,8 +41,9 @@ function F.Light(pos,explosion,entity)
 end
 net.Receive("ZA1/Feedback",function()
     local kind,pos,angles=net.ReadUInt(2),net.ReadVector(),net.ReadAngle()
-    local z,attachment,weapon
+    local z,attachment,weapon,dynamite
     if kind==0 then z,attachment,weapon=net.ReadEntity(),net.ReadUInt(8),guns[net.ReadUInt(2)] end
+    if kind==3 then dynamite=net.ReadBool() end
     local ply=LocalPlayer()
     if not IsValid(ply) or ply:EyePos():DistToSqr(pos)>distance:GetFloat()^2 then return end
     if kind==0 then
@@ -47,12 +51,17 @@ net.Receive("ZA1/Feedback",function()
         if IsValid(z) and attachment>0 then ParticleEffectAttach(effect,PATTACH_POINT_FOLLOW,z,attachment)
         else ParticleEffect(effect,pos,angles) end
         F.Light(pos,false,z)
-    elseif kind==3 then ParticleEffect(A.Explosion,pos,angles);F.Light(pos,true)
+    elseif kind==3 then
+        ZA1.FireVFX.World(dynamite and "Tnt_Explosion" or "M24StielGrenade_Explosion",pos,angles)
+        ZA1.FireVFX.World("Grenade_BASE_concussion",pos,angles)
+        F.Light(pos,true)
     else
         -- Large death bursts are cosmetic. Do not flood one rendered frame
         -- when a grenade kills a crowded group; retain the nearer hit response.
         local frame=FrameNumber();if frame~=burstFrame then burstFrame,bursts=frame,0 end
         if bursts>=4 then return end
-        bursts=bursts+1;ParticleEffect(kind==1 and A.Headshot or A.FullGib,pos,angles)
+        bursts=bursts+1
+        if kind==1 then ParticleEffect(A.Headshot,pos,angles)
+        else ZA1.FireVFX.World("Blood_explosion",pos,angles) end
     end
 end)

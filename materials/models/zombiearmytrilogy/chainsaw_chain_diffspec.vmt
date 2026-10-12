@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/elites/chainsaw_chain_diffspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/elites/chainsaw_chain_norm"
+    "$phong" "1"
+    "$phongexponent" "11.4041604"
+    "$phongboost" "1.42552005"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[1 1 1]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/elites/chainsaw_chain_diffspec"
+    "$alphatest" "1"
+    "$alphatestreference" "0.05"
+    "$model" "1"
+}

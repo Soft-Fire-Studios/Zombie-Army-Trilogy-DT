@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/zombiearmytrilogy/textures/elites/undead_superelite_ammopouch_colspec"
+    "$bumpmap" "models/zombiearmytrilogy/textures/elites/gerelite_ammopouch_norms"
+    "$phong" "1"
+    "$phongexponent" "100.511525"
+    "$phongboost" "12.5539174"
+    "$phongfresnelranges" "[1 1 1]"
+    "$phongtint" "[0 0 0]"
+    "$lightwarptexture" "models/zombiearmytrilogy/lightwarps/elites/undead_superelite_ammopouch_colspec"
+    "$phongexponenttexture" "models/zombiearmytrilogy/exponents/elites/undead_superelite_ammopouch_colspec"
+    "$phongalbedotint" "1"
+    "$model" "1"
+}

@@ -11,7 +11,7 @@ ENT.PrintName = "Soldier Zombie"
 ENT.Category = "Zombie Army Trilogy"
 ENT.Spawnable = false -- DT's registered NPC icons remain; omit the Entities tab.
 ENT.Models = {"models/zombiearmytrilogy/zombie_soldier.mdl"}
-ENT.MaxHealth = 125
+ENT.MaxHealth = C.Combat.Health
 ENT.HealthRegen = 0
 ENT.Height = 74
 ENT.Width = 14
@@ -354,12 +354,14 @@ if SERVER then
             M.Alert(self, attacker:GetPos())
         end
         if ZA1.Equipment.Hit(self,info,tr) then return end
+        local limbDamage = info:GetDamage()
+        ZA1.Combat.Apply(self,info,tr)
+        if info:GetDamage() <= 0 then return end
         local group = tr and tr.HitGroup or HITGROUP_GENERIC
         if group == HITGROUP_HEAD then
-            info:ScaleDamage(2)
             ZA1.Gore.HeadHit(self,info,info:GetDamage()>=self:Health())
         end
-        ZA1.Dismemberment.Damage(self,info,tr)
+        ZA1.Dismemberment.Damage(self,info,tr,limbDamage)
         ZA1.Recovery.Damage(self,info)
     end
     function ENT:DoWounded(info, tr)
@@ -387,6 +389,7 @@ if SERVER then
         for group = 0, self:GetNumBodyGroups()-1 do rag:SetBodygroup(group, self:GetBodygroup(group)) end
         ZA1.Equipment.Refresh(rag)
         ZA1.Gore.Ragdoll(self,rag)
+        ZA1.Recovery.Remember(self,rag)
         M.Ragdoll(rag)
     end
     function ENT:ZAEnemyGoal(enemy)
@@ -537,6 +540,7 @@ if SERVER then
         if self.ZAEmerge then
             local sequence = self.ZAEmerge
             self.ZAEmerge = nil
+            ZA1.ResurrectionFX.Emerge(self, sequence)
             self:ZAPlayOnce(sequence)
             return
         end
